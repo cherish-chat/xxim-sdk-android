@@ -1,0 +1,333 @@
+{
+  "_note1": "KEEP THIS FILE! Check it into a version control system (VCS) like git.",
+  "_note2": "ObjectBox manages crucial IDs for your object model. See docs for details.",
+  "_note3": "If you have VCS merge conflicts, you must resolve them according to ObjectBox docs.",
+  "entities": [
+    {
+      "id": "1:5940862274337639622",
+      "lastPropertyId": "10:4328913136495726657",
+      "name": "ConvModel",
+      "properties": [
+        {
+          "id": "1:4880358725370097311",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:2235359620276733269",
+          "name": "convId",
+          "indexId": "1:2850649593467156626",
+          "type": 9,
+          "flags": 2048
+        },
+        {
+          "id": "3:3766177425030450007",
+          "name": "convType",
+          "indexId": "2:2427237884569122365",
+          "type": 5,
+          "flags": 8
+        },
+        {
+          "id": "4:7029978421100256564",
+          "name": "clientMsgId",
+          "indexId": "3:5049501863661997438",
+          "type": 9,
+          "flags": 2048
+        },
+        {
+          "id": "5:6758534203462061234",
+          "name": "noticeId",
+          "indexId": "4:3708408183536342424",
+          "type": 9,
+          "flags": 2048
+        },
+        {
+          "id": "6:2807610506046901919",
+          "name": "time",
+          "type": 5
+        },
+        {
+          "id": "7:2282727736643723007",
+          "name": "unreadCount",
+          "indexId": "5:2792153244470361640",
+          "type": 5,
+          "flags": 8
+        },
+        {
+          "id": "8:550581244643487937",
+          "name": "draftModel",
+          "type": 9
+        },
+        {
+          "id": "9:5964603692866294701",
+          "name": "hidden",
+          "type": 1
+        },
+        {
+          "id": "10:4328913136495726657",
+          "name": "deleted",
+          "type": 1
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "2:3090875530562325355",
+      "lastPropertyId": "18:4624842295346226291",
+      "name": "MsgModel",
+      "properties": [
+        {
+          "id": "1:3944765190768827280",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:7015499037108920153",
+          "name": "clientMsgId",
+          "indexId": "6:5345908597065846056",
+          "type": 9,
+          "flags": 2048
+        },
+        {
+          "id": "3:2329889465903429085",
+          "name": "serverMsgId",
+          "type": 9
+        },
+        {
+          "id": "4:2118585855220277709",
+          "name": "clientTime",
+          "type": 5
+        },
+        {
+          "id": "5:9157678702665642008",
+          "name": "serverTime",
+          "type": 5
+        },
+        {
+          "id": "6:8364656790560097981",
+          "name": "senderId",
+          "indexId": "7:2238046324997794025",
+          "type": 9,
+          "flags": 2048
+        },
+        {
+          "id": "7:6616859704029578324",
+          "name": "senderInfo",
+          "type": 9
+        },
+        {
+          "id": "8:8860890615517797377",
+          "name": "convId",
+          "indexId": "8:6752363297615083130",
+          "type": 9,
+          "flags": 2048
+        },
+        {
+          "id": "9:2938973313266088829",
+          "name": "atUsers",
+          "type": 30
+        },
+        {
+          "id": "10:2783000133555794824",
+          "name": "contentType",
+          "indexId": "9:6519867423529443625",
+          "type": 5,
+          "flags": 8
+        },
+        {
+          "id": "11:9007052357339965030",
+          "name": "content",
+          "indexId": "10:4155639472692484862",
+          "type": 9,
+          "flags": 2048
+        },
+        {
+          "id": "12:1627255975866098328",
+          "name": "seq",
+          "type": 5
+        },
+        {
+          "id": "13:5537383283316400547",
+          "name": "options",
+          "type": 9
+        },
+        {
+          "id": "14:7597243927212125352",
+          "name": "offlinePush",
+          "type": 9
+        },
+        {
+          "id": "15:2801479363865615910",
+          "name": "ext",
+          "type": 9
+        },
+        {
+          "id": "16:257519385006307635",
+          "name": "sendStatus",
+          "type": 5
+        },
+        {
+          "id": "17:2653693992711032248",
+          "name": "sendProgress",
+          "type": 5
+        },
+        {
+          "id": "18:4624842295346226291",
+          "name": "deleted",
+          "type": 1
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "3:2939909657621744836",
+      "lastPropertyId": "10:1744068034015612937",
+      "name": "NoticeModel",
+      "properties": [
+        {
+          "id": "1:5494529742234774893",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:5859225513380745944",
+          "name": "convId",
+          "indexId": "11:3444312103462693196",
+          "type": 9,
+          "flags": 2048
+        },
+        {
+          "id": "3:6301429497002595749",
+          "name": "noticeId",
+          "indexId": "12:7409749678469186569",
+          "type": 9,
+          "flags": 2048
+        },
+        {
+          "id": "4:7933710271162439012",
+          "name": "createTime",
+          "type": 5
+        },
+        {
+          "id": "5:3427191509875752177",
+          "name": "title",
+          "type": 9
+        },
+        {
+          "id": "6:3352860100603384221",
+          "name": "contentType",
+          "type": 5
+        },
+        {
+          "id": "7:4123884851509388231",
+          "name": "content",
+          "type": 9
+        },
+        {
+          "id": "8:5995275276091089384",
+          "name": "options",
+          "type": 9
+        },
+        {
+          "id": "9:6553819233270732816",
+          "name": "ext",
+          "type": 9
+        },
+        {
+          "id": "10:1744068034015612937",
+          "name": "deleted",
+          "type": 1
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "4:2272719757754384943",
+      "lastPropertyId": "4:6552640256564695633",
+      "name": "ReadModel",
+      "properties": [
+        {
+          "id": "1:436059869219750965",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:4219929443781435367",
+          "name": "senderId",
+          "indexId": "13:316721946400609759",
+          "type": 9,
+          "flags": 2048
+        },
+        {
+          "id": "3:371720689163282439",
+          "name": "convId",
+          "indexId": "14:2799892740592748197",
+          "type": 9,
+          "flags": 2048
+        },
+        {
+          "id": "4:6552640256564695633",
+          "name": "seq",
+          "type": 5
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "5:4156839347225116010",
+      "lastPropertyId": "6:7639566496434777841",
+      "name": "RecordModel",
+      "properties": [
+        {
+          "id": "1:458004481861396189",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:3410018610540831535",
+          "name": "convId",
+          "indexId": "15:6473349555651222667",
+          "type": 9,
+          "flags": 2048
+        },
+        {
+          "id": "3:6486863851958639406",
+          "name": "minSeq",
+          "type": 5
+        },
+        {
+          "id": "4:6892085021171680096",
+          "name": "maxSeq",
+          "type": 5
+        },
+        {
+          "id": "5:4516275424825641021",
+          "name": "updateTime",
+          "type": 5
+        },
+        {
+          "id": "6:7639566496434777841",
+          "name": "seq",
+          "type": 5
+        }
+      ],
+      "relations": []
+    }
+  ],
+  "lastEntityId": "5:4156839347225116010",
+  "lastIndexId": "15:6473349555651222667",
+  "lastRelationId": "0:0",
+  "lastSequenceId": "0:0",
+  "modelVersion": 5,
+  "modelVersionParserMinimum": 5,
+  "retiredEntityUids": [],
+  "retiredIndexUids": [],
+  "retiredPropertyUids": [],
+  "retiredRelationUids": [],
+  "version": 1
+}

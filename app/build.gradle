@@ -1,0 +1,37 @@
+plugins {
+    id 'com.android.library'
+    id 'io.objectbox'
+}
+
+android {
+    namespace 'chat.cherish.xxim.sdk'
+    compileSdk 33
+
+    defaultConfig {
+        minSdk 24
+        targetSdk 33
+        versionCode 100
+        versionName "1.0.0"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+dependencies {
+    implementation files('libs/xxim_core_android.aar')
+    implementation 'com.google.protobuf:protobuf-javalite:3.8.0'
+
+    implementation 'io.objectbox:objectbox-java:3.5.0'
+    annotationProcessor 'io.objectbox:objectbox-processor:3.5.0'
+    implementation 'io.objectbox:objectbox-android:3.5.0'
+    implementation 'com.alibaba.fastjson2:fastjson2:2.0.23'
+}
