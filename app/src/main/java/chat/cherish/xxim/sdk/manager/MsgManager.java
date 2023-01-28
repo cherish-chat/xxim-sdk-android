@@ -205,7 +205,7 @@ public class MsgManager {
             msgBuilder.equal(
                     MsgModel_.clientMsgId, clientMsgId,
                     QueryBuilder.StringOrder.CASE_SENSITIVE
-            ).and();
+            ).or();
         }
         Query<MsgModel> msgQuery = msgBuilder.build();
         List<MsgModel> msgModelList = msgQuery.find();

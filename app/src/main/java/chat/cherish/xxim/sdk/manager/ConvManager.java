@@ -5,10 +5,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import chat.cherish.xxim.sdk.callback.OperateCallback;
+import chat.cherish.xxim.sdk.common.ContentType;
+import chat.cherish.xxim.sdk.common.ConvType;
 import chat.cherish.xxim.sdk.model.ConvModel;
 import chat.cherish.xxim.sdk.model.ConvModel_;
 import chat.cherish.xxim.sdk.model.MsgModel;
+import chat.cherish.xxim.sdk.model.MsgModel_;
 import chat.cherish.xxim.sdk.model.NoticeModel;
+import chat.cherish.xxim.sdk.model.NoticeModel_;
+import chat.cherish.xxim.sdk.model.SDKContent;
 import io.objectbox.query.Query;
 import io.objectbox.query.QueryBuilder;
 
@@ -23,6 +29,7 @@ public class ConvManager {
         this.noticeManager = noticeManager;
     }
 
+    // 获取会话列表
     public List<ConvModel> getConvList() {
         List<ConvModel> convList = queryConvList();
         if (convList.isEmpty()) return convList;
@@ -62,18 +69,249 @@ public class ConvManager {
     }
 
     private List<ConvModel> queryConvList() {
-        QueryBuilder<ConvModel> convBuilder = sdkManager.convBox().query();
-        convBuilder.equal(
-                ConvModel_.hidden, false
-        );
-        convBuilder.and().equal(
-                ConvModel_.deleted, false
-        );
-        convBuilder.orderDesc(ConvModel_.draftModel);
-        convBuilder.orderDesc(ConvModel_.time);
-        Query<ConvModel> convQuery = convBuilder.build();
+        Query<ConvModel> convQuery = sdkManager.convBox().query()
+                .equal(
+                        ConvModel_.hidden, false
+                )
+                .and()
+                .equal(
+                        ConvModel_.deleted, false
+                )
+                .orderDesc(ConvModel_.draftModel)
+                .orderDesc(ConvModel_.time)
+                .build();
         List<ConvModel> convModelList = convQuery.find();
         convQuery.close();
         return convModelList;
+    }
+
+    // 获取单条会话
+    public ConvModel getSingleConv(String convId) {
+        Query<ConvModel> convQuery = sdkManager.convBox().query()
+                .equal(
+                        ConvModel_.convId, convId,
+                        QueryBuilder.StringOrder.CASE_SENSITIVE
+                )
+                .build();
+        ConvModel convModel = convQuery.findFirst();
+        convQuery.close();
+        if (convModel != null) {
+            if (convModel.clientMsgId != null) {
+                convModel.msgModel = msgManager.getSingleMsg(
+                        convModel.clientMsgId
+                );
+            }
+            if (convModel.noticeId != null) {
+                convModel.noticeModel = noticeManager.getSingleNotice(
+                        convModel.noticeId
+                );
+            }
+        }
+        return convModel;
+    }
+
+    // 设置会话已读
+    public void setConvRead(String convId) {
+        Query<ConvModel> convQuery = sdkManager.convBox().query()
+                .equal(
+                        ConvModel_.convId, convId,
+                        QueryBuilder.StringOrder.CASE_SENSITIVE
+                )
+                .build();
+        ConvModel convModel = convQuery.findFirst();
+        convQuery.close();
+        if (convModel == null) return;
+        if (convModel.unreadCount == 0) return;
+        convModel.unreadCount = 0;
+        sdkManager.convBox().put(convModel);
+        sdkManager.calculateUnreadCount();
+        if (convModel.convType != ConvType.msg) return;
+        MsgModel msgModel = msgManager.getFirstMsg(
+                convId
+        );
+        if (msgModel == null) return;
+        msgManager.sendRead(
+                convId,
+                new SDKContent.ReadContent(
+                        msgModel.seq
+                ),
+                new OperateCallback<List<MsgModel>>() {
+                }
+        );
+    }
+
+    // 更新会话消息
+    public void updateConvMsg(String convId) {
+        Query<ConvModel> convQuery = sdkManager.convBox().query()
+                .equal(
+                        ConvModel_.convId, convId,
+                        QueryBuilder.StringOrder.CASE_SENSITIVE
+                )
+                .build();
+        ConvModel convModel = convQuery.findFirst();
+        convQuery.close();
+        if (convModel == null) return;
+        Query<MsgModel> msgQuery = sdkManager.msgBox().query()
+                .equal(
+                        MsgModel_.convId, convId,
+                        QueryBuilder.StringOrder.CASE_SENSITIVE
+                )
+                .and()
+                .lessOrEqual(MsgModel_.contentType, ContentType.text)
+                .and()
+                .greaterOrEqual(MsgModel_.contentType, ContentType.custom)
+                .and()
+                .equal(
+                        MsgModel_.deleted, false
+                )
+                .orderDesc(MsgModel_.seq)
+                .build();
+        MsgModel msgModel = msgQuery.findFirst();
+        msgQuery.close();
+        if (msgModel == null) return;
+        convModel.clientMsgId = msgModel.clientMsgId;
+        convModel.time = msgModel.serverTime;
+        convModel.msgModel = msgModel;
+        sdkManager.convBox().put(convModel);
+        sdkManager.calculateUnreadCount();
+    }
+
+    // 删除会话消息
+    public void deleteConvMsg(String convId) {
+        Query<ConvModel> convQuery = sdkManager.convBox().query()
+                .equal(
+                        ConvModel_.convId, convId,
+                        QueryBuilder.StringOrder.CASE_SENSITIVE
+                )
+                .build();
+        ConvModel convModel = convQuery.findFirst();
+        convQuery.close();
+        if (convModel == null) return;
+        convModel.clientMsgId = null;
+        convModel.time = 0;
+        convModel.msgModel = null;
+        sdkManager.convBox().put(convModel);
+        sdkManager.calculateUnreadCount();
+    }
+
+    // 更新会话通知
+    public void updateConvNotice(String convId) {
+        Query<ConvModel> convQuery = sdkManager.convBox().query()
+                .equal(
+                        ConvModel_.convId, convId,
+                        QueryBuilder.StringOrder.CASE_SENSITIVE
+                )
+                .build();
+        ConvModel convModel = convQuery.findFirst();
+        convQuery.close();
+        if (convModel == null) return;
+        Query<NoticeModel> noticeQuery = sdkManager.noticeBox().query()
+                .equal(
+                        NoticeModel_.convId, convId,
+                        QueryBuilder.StringOrder.CASE_SENSITIVE
+                )
+                .and()
+                .equal(
+                        NoticeModel_.deleted, false
+                )
+                .orderDesc(NoticeModel_.createTime)
+                .build();
+        NoticeModel noticeModel = noticeQuery.findFirst();
+        noticeQuery.close();
+        if (noticeModel == null) return;
+        convModel.noticeId = noticeModel.noticeId;
+        convModel.time = noticeModel.createTime;
+        convModel.noticeModel = noticeModel;
+        sdkManager.convBox().put(convModel);
+        sdkManager.calculateUnreadCount();
+    }
+
+    // 删除会话通知
+    public void deleteConvNotice(String convId) {
+        Query<ConvModel> convQuery = sdkManager.convBox().query()
+                .equal(
+                        ConvModel_.convId, convId,
+                        QueryBuilder.StringOrder.CASE_SENSITIVE
+                )
+                .build();
+        ConvModel convModel = convQuery.findFirst();
+        convQuery.close();
+        if (convModel == null) return;
+        convModel.noticeId = null;
+        convModel.time = 0;
+        convModel.noticeModel = null;
+        sdkManager.convBox().put(convModel);
+        sdkManager.calculateUnreadCount();
+    }
+
+    // 设置会话草稿
+    public void setConvDraft(String convId, ConvModel.DraftModel draftModel) {
+        Query<ConvModel> convQuery = sdkManager.convBox().query()
+                .equal(
+                        ConvModel_.convId, convId,
+                        QueryBuilder.StringOrder.CASE_SENSITIVE
+                )
+                .build();
+        ConvModel convModel = convQuery.findFirst();
+        convQuery.close();
+        if (convModel == null) return;
+        convModel.draftModel = draftModel;
+        sdkManager.convBox().put(convModel);
+    }
+
+    // 设置会话隐藏
+    public void setConvHidden(String convId, boolean hidden) {
+        Query<ConvModel> convQuery = sdkManager.convBox().query()
+                .equal(
+                        ConvModel_.convId, convId,
+                        QueryBuilder.StringOrder.CASE_SENSITIVE
+                )
+                .build();
+        ConvModel convModel = convQuery.findFirst();
+        convQuery.close();
+        if (convModel == null) return;
+        convModel.unreadCount = 0;
+        convModel.hidden = hidden;
+        sdkManager.convBox().put(convModel);
+    }
+
+    // 删除会话
+    public void deleteConv(String convId, boolean clear) {
+        Query<ConvModel> convQuery = sdkManager.convBox().query()
+                .equal(
+                        ConvModel_.convId, convId,
+                        QueryBuilder.StringOrder.CASE_SENSITIVE
+                )
+                .build();
+        ConvModel convModel = convQuery.findFirst();
+        convQuery.close();
+        if (convModel == null) return;
+        if (clear) {
+            convModel.clientMsgId = null;
+            convModel.noticeId = null;
+            convModel.time = 0;
+            convModel.msgModel = null;
+            convModel.noticeModel = null;
+        }
+        convModel.unreadCount = 0;
+        convModel.draftModel = null;
+        convModel.hidden = false;
+        convModel.deleted = true;
+        sdkManager.convBox().put(convModel);
+        sdkManager.calculateUnreadCount();
+        if (!clear) return;
+        if (convModel.convType == ConvType.msg) {
+            msgManager.clearMsg(convId);
+        } else if (convModel.convType == ConvType.notice) {
+            noticeManager.clearNotice(convId);
+        }
+    }
+
+    // 获取未读数量
+    public int getUnreadCount() {
+        Query<ConvModel> convQuery = sdkManager.convBox().query().build();
+        long count = convQuery.property(ConvModel_.unreadCount).sum();
+        convQuery.close();
+        return (int) count;
     }
 }

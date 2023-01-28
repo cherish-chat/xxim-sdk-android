@@ -17,16 +17,17 @@ public class NoticeManager {
 
     // 获取通知列表
     public List<NoticeModel> getNoticeList(String convId, int offset, int limit) {
-        QueryBuilder<NoticeModel> noticeBuilder = sdkManager.noticeBox().query();
-        noticeBuilder.equal(
-                NoticeModel_.convId, convId,
-                QueryBuilder.StringOrder.CASE_SENSITIVE
-        );
-        noticeBuilder.and().equal(
-                NoticeModel_.deleted, false
-        );
-        noticeBuilder.orderDesc(NoticeModel_.createTime);
-        Query<NoticeModel> noticeQuery = noticeBuilder.build();
+        Query<NoticeModel> noticeQuery = sdkManager.noticeBox().query()
+                .equal(
+                        NoticeModel_.convId, convId,
+                        QueryBuilder.StringOrder.CASE_SENSITIVE
+                )
+                .and()
+                .equal(
+                        NoticeModel_.deleted, false
+                )
+                .orderDesc(NoticeModel_.createTime)
+                .build();
         List<NoticeModel> noticeModelList = noticeQuery.find(offset, limit);
         noticeQuery.close();
         return noticeModelList;
@@ -52,7 +53,7 @@ public class NoticeManager {
             noticeBuilder.equal(
                     NoticeModel_.noticeId, noticeId,
                     QueryBuilder.StringOrder.CASE_SENSITIVE
-            ).and();
+            ).or();
         }
         Query<NoticeModel> noticeQuery = noticeBuilder.build();
         List<NoticeModel> noticeModelList = noticeQuery.find();
