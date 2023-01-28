@@ -5,6 +5,7 @@ public class ContentType {
     public static int typing = 1; // 正在输入
     public static int read = 2; // 已读
     public static int revoke = 3; // 撤回
+    public static int tip = 4; // 提示
 
     public static int text = 11; // 文本
     public static int image = 12; // 图片
