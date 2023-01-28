@@ -2,7 +2,7 @@ package chat.cherish.xxim.sdk.model;
 
 import java.util.List;
 
-import chat.cherish.xxim.sdk.common.AESParams;
+import chat.cherish.xxim.sdk.common.AesParams;
 import chat.cherish.xxim.sdk.common.SendStatus;
 import chat.cherish.xxim.sdk.model.converter.MsgOfflineConverter;
 import chat.cherish.xxim.sdk.model.converter.MsgOptionsConverter;
@@ -91,7 +91,7 @@ public class MsgModel {
         this.deleted = false;
     }
 
-    public static MsgModel fromProto(Core.MsgData msgData, AESParams aesParams) {
+    public static MsgModel fromProto(Core.MsgData msgData, AesParams aesParams) {
         MsgOptionsModel options = new MsgOptionsModel(
                 msgData.getOptions().getStorageForServer(),
                 msgData.getOptions().getStorageForClient(),
