@@ -2,9 +2,15 @@ package chat.cherish.xxim.sdk;
 
 import android.content.Context;
 
+import com.google.protobuf.ByteString;
+
+import java.util.List;
+
 import chat.cherish.xxim.core.XXIMCore;
+import chat.cherish.xxim.core.callback.RequestCallback;
 import chat.cherish.xxim.core.listener.ConnectListener;
 import chat.cherish.xxim.core.listener.ReceivePushListener;
+import chat.cherish.xxim.sdk.callback.OperateCallback;
 import chat.cherish.xxim.sdk.callback.SubscribeCallback;
 import chat.cherish.xxim.sdk.common.CXNParams;
 import chat.cherish.xxim.sdk.listener.ConvListener;
@@ -16,10 +22,12 @@ import chat.cherish.xxim.sdk.manager.ConvManager;
 import chat.cherish.xxim.sdk.manager.MsgManager;
 import chat.cherish.xxim.sdk.manager.NoticeManager;
 import chat.cherish.xxim.sdk.manager.SDKManager;
+import chat.cherish.xxim.sdk.tool.SDKTool;
 import pb.Core;
 
 public class XXIMSDK {
 
+    private Context context;
     private XXIMCore xximCore;
     private SDKManager sdkManager;
 
@@ -33,6 +41,7 @@ public class XXIMSDK {
                      MsgListener msgListener, NoticeListener noticeListener,
                      UnreadListener unreadListener
     ) {
+        this.context = context;
         xximCore = new XXIMCore();
         xximCore.init(
                 requestTimeout,
@@ -65,4 +74,93 @@ public class XXIMSDK {
         convManager = new ConvManager(sdkManager, msgManager, noticeManager);
     }
 
+    // 连接
+    public void connect(String wsUrl) {
+        xximCore.connect(wsUrl);
+    }
+
+    // 断连
+    public void disconnect() {
+        sdkManager.closeDatabase();
+        xximCore.disconnect();
+        closePullSubscribe();
+    }
+
+    // 是否连接
+    public boolean isConnect() {
+        return xximCore.isConnect();
+    }
+
+    // 设置连接参数
+    public void setCxnParams(CXNParams cxnParams, OperateCallback<Boolean> callback) {
+        Core.SetCxnParamsReq req = Core.SetCxnParamsReq.newBuilder()
+                .setPlatform(cxnParams.platform)
+                .setDeviceId(cxnParams.deviceId)
+                .setDeviceModel(cxnParams.deviceModel)
+                .setOsVersion(cxnParams.osVersion)
+                .setAppVersion(cxnParams.appVersion)
+                .setLanguage(cxnParams.language)
+                .setNetworkUsed(cxnParams.networkUsed)
+                .setExt(ByteString.copyFrom(cxnParams.ext))
+                .build();
+        xximCore.setCxnParams(SDKTool.getUUId(), req, new RequestCallback<Core.SetCxnParamsResp>() {
+            @Override
+            public void onSuccess(Core.SetCxnParamsResp setCxnParamsResp) {
+                callback.onSuccess(true);
+            }
+
+            @Override
+            public void onError(int code, String error) {
+                callback.onError(code, error);
+            }
+        });
+    }
+
+    // 设置用户参数
+    public void setUserParams(String userId, String token, byte[] ext, String boxName, List<String> convIdList,
+                              OperateCallback<Boolean> callback) {
+        Core.SetUserParamsReq req = Core.SetUserParamsReq.newBuilder()
+                .setUserId(userId)
+                .setToken(token)
+                .setExt(ByteString.copyFrom(ext))
+                .build();
+        xximCore.setUserParams(SDKTool.getUUId(), req, new RequestCallback<Core.SetUserParamsResp>() {
+            @Override
+            public void onSuccess(Core.SetUserParamsResp setUserParamsResp) {
+                sdkManager.openDatabase(context, userId, boxName);
+                openPullSubscribe(convIdList);
+                callback.onSuccess(true);
+            }
+
+            @Override
+            public void onError(int code, String error) {
+                callback.onError(code, error);
+            }
+        });
+    }
+
+    // 打开拉取订阅
+    public void openPullSubscribe(List<String> convIdList) {
+        sdkManager.openPullSubscribe(convIdList);
+    }
+
+    // 关闭拉取订阅
+    public void closePullSubscribe() {
+        sdkManager.closePullSubscribe();
+    }
+
+    // 自定义请求
+    public void customRequest(String method, byte[] bytes, OperateCallback<byte[]> callback) {
+        xximCore.customRequest(SDKTool.getUUId(), method, ByteString.copyFrom(bytes), new RequestCallback<ByteString>() {
+            @Override
+            public void onSuccess(ByteString byteString) {
+                callback.onSuccess(byteString.toByteArray());
+            }
+
+            @Override
+            public void onError(int code, String error) {
+                callback.onError(code, error);
+            }
+        });
+    }
 }
