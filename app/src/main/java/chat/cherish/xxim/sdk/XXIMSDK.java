@@ -12,7 +12,7 @@ import chat.cherish.xxim.core.listener.ConnectListener;
 import chat.cherish.xxim.core.listener.ReceivePushListener;
 import chat.cherish.xxim.sdk.callback.OperateCallback;
 import chat.cherish.xxim.sdk.callback.SubscribeCallback;
-import chat.cherish.xxim.sdk.common.CXNParams;
+import chat.cherish.xxim.sdk.common.CxnParams;
 import chat.cherish.xxim.sdk.listener.ConvListener;
 import chat.cherish.xxim.sdk.listener.MsgListener;
 import chat.cherish.xxim.sdk.listener.NoticeListener;
@@ -35,7 +35,7 @@ public class XXIMSDK {
     public MsgManager msgManager;
     public NoticeManager noticeManager;
 
-    public void init(Context context, int requestTimeout, CXNParams cxnParams, int autoPullTime, int pullMsgCount,
+    public void init(Context context, int requestTimeout, CxnParams cxnParams, int autoPullTime, int pullMsgCount,
                      ConnectListener connectListener, SubscribeCallback subscribeCallback,
                      PullListener pullListener, ConvListener convListener,
                      MsgListener msgListener, NoticeListener noticeListener,
@@ -45,7 +45,22 @@ public class XXIMSDK {
         xximCore = new XXIMCore();
         xximCore.init(
                 requestTimeout,
-                connectListener,
+                new ConnectListener() {
+                    @Override
+                    public void onConnecting() {
+                        connectListener.onConnecting();
+                    }
+
+                    @Override
+                    public void onSuccess() {
+                        setCxnParams(cxnParams, connectListener);
+                    }
+
+                    @Override
+                    public void onClose(int code, String error) {
+                        connectListener.onClose(code, error);
+                    }
+                },
                 new ReceivePushListener() {
                     @Override
                     public void onPushMsgDataList(Core.MsgDataList msgDataList) {
@@ -92,7 +107,22 @@ public class XXIMSDK {
     }
 
     // 设置连接参数
-    public void setCxnParams(CXNParams cxnParams, OperateCallback<Boolean> callback) {
+    private void setCxnParams(CxnParams cxnParams, ConnectListener connectListener) {
+        setCxnParams(cxnParams, new OperateCallback<Boolean>() {
+            @Override
+            public void onSuccess(Boolean aBoolean) {
+                connectListener.onSuccess();
+            }
+
+            @Override
+            public void onError(int code, String error) {
+                setCxnParams(cxnParams, connectListener);
+            }
+        });
+    }
+
+    // 设置连接参数
+    public void setCxnParams(CxnParams cxnParams, OperateCallback<Boolean> callback) {
         Core.SetCxnParamsReq req = Core.SetCxnParamsReq.newBuilder()
                 .setPlatform(cxnParams.platform)
                 .setDeviceId(cxnParams.deviceId)

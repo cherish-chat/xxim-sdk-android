@@ -16,7 +16,7 @@ import chat.cherish.xxim.core.XXIMCore;
 import chat.cherish.xxim.core.callback.RequestCallback;
 import chat.cherish.xxim.sdk.callback.OperateCallback;
 import chat.cherish.xxim.sdk.callback.SubscribeCallback;
-import chat.cherish.xxim.sdk.common.AESParams;
+import chat.cherish.xxim.sdk.common.AesParams;
 import chat.cherish.xxim.sdk.common.ContentType;
 import chat.cherish.xxim.sdk.common.ConvType;
 import chat.cherish.xxim.sdk.common.SendStatus;
@@ -278,12 +278,12 @@ public class SDKManager {
         cancelTimer();
     }
 
-    private Map<String, AESParams> convAESParams(List<Core.MsgData> msgDataList) {
+    private Map<String, AesParams> convAesParams(List<Core.MsgData> msgDataList) {
         List<String> convIdList = new ArrayList<>();
         for (Core.MsgData msgData : msgDataList) {
             convIdList.add(msgData.getConvId());
         }
-        return subscribeCallback.onConvAESParams(convIdList);
+        return subscribeCallback.onConvAesParams(convIdList);
     }
 
     public void pullMsgDataList(List<Core.BatchGetMsgListByConvIdReq.Item> items,
@@ -298,9 +298,9 @@ public class SDKManager {
                 new RequestCallback<Core.GetMsgListResp>() {
                     @Override
                     public void onSuccess(Core.GetMsgListResp resp) {
-                        Map<String, AESParams> convAESMap = convAESParams(resp.getMsgDataListList());
+                        Map<String, AesParams> convAesMap = convAesParams(resp.getMsgDataListList());
                         for (Core.MsgData msgData : resp.getMsgDataListList()) {
-                            handleMsg(msgData, convAESMap.get(msgData.getConvId()));
+                            handleMsg(msgData, convAesMap.get(msgData.getConvId()));
                         }
                         if (callback != null) callback.onSuccess(resp);
                     }
@@ -326,8 +326,8 @@ public class SDKManager {
                 Core.MsgData msgData = resp.getMsgData();
                 List<Core.MsgData> msgDataList = new ArrayList<>();
                 msgDataList.add(msgData);
-                Map<String, AESParams> convAESMap = convAESParams(msgDataList);
-                callback.onSuccess(handleMsg(msgData, convAESMap.get(msgData.getConvId())));
+                Map<String, AesParams> convAesMap = convAesParams(msgDataList);
+                callback.onSuccess(handleMsg(msgData, convAesMap.get(msgData.getConvId())));
             }
 
             @Override
@@ -340,10 +340,10 @@ public class SDKManager {
     // 推送消息列表
     public void onPushMsgDataList(List<Core.MsgData> msgDataList) {
         boolean isFirstPull = msgBox().count() == 0;
-        Map<String, AESParams> convAESMap = convAESParams(msgDataList);
+        Map<String, AesParams> convAesMap = convAesParams(msgDataList);
         List<MsgModel> msgModelList = new ArrayList<>();
         for (Core.MsgData msgData : msgDataList) {
-            msgModelList.add(handleMsg(msgData, convAESMap.get(msgData.getConvId())));
+            msgModelList.add(handleMsg(msgData, convAesMap.get(msgData.getConvId())));
         }
         if (!isFirstPull && !msgModelList.isEmpty()) {
             if (msgListener != null) msgListener.onReceive(msgModelList);
@@ -381,7 +381,7 @@ public class SDKManager {
     }
 
     // 处理消息
-    private MsgModel handleMsg(Core.MsgData msgData, AESParams aesParams) {
+    private MsgModel handleMsg(Core.MsgData msgData, AesParams aesParams) {
         MsgModel msgModel = MsgModel.fromProto(msgData, aesParams);
         msgModel.sendStatus = SendStatus.success;
         updateRecord(msgModel);
@@ -692,14 +692,14 @@ public class SDKManager {
         for (MsgModel msgModel : msgModelList) {
             convIdList.add(msgModel.convId);
         }
-        Map<String, AESParams> convAESMap = subscribeCallback.onConvAESParams(convIdList);
+        Map<String, AesParams> convAesMap = subscribeCallback.onConvAesParams(convIdList);
         Core.SendMsgListReq.Builder builder = Core.SendMsgListReq.newBuilder();
         for (MsgModel msgModel : msgModelList) {
             if (senderInfo != null) {
                 msgModel.senderInfo = senderInfo;
             }
             ByteString content = ByteString.copyFromUtf8(msgModel.content);
-            AESParams aesParams = convAESMap.get(msgModel.convId);
+            AesParams aesParams = convAesMap.get(msgModel.convId);
             if (msgModel.options.needDecrypt && aesParams != null) {
                 content = ByteString.copyFrom(
                         SDKTool.aesEncode(aesParams.key, aesParams.iv, msgModel.content)

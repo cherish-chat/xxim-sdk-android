@@ -1,9 +1,8 @@
 package chat.cherish.xxim.sdk.common;
 
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 
-public class CXNParams {
+public class CxnParams {
     public String platform;
     public String deviceId;
     public String deviceModel;
@@ -13,7 +12,7 @@ public class CXNParams {
     public String networkUsed;
     public byte[] ext;
 
-    public CXNParams(String platform, String deviceId, String deviceModel, String osVersion, String appVersion,
+    public CxnParams(String platform, String deviceId, String deviceModel, String osVersion, String appVersion,
                      String language, String networkUsed
     ) {
         this.platform = platform;
