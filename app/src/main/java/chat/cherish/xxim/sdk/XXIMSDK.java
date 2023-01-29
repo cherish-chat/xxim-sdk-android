@@ -131,7 +131,7 @@ public class XXIMSDK {
                 .setAppVersion(cxnParams.appVersion)
                 .setLanguage(cxnParams.language)
                 .setNetworkUsed(cxnParams.networkUsed)
-                .setExt(ByteString.copyFrom(cxnParams.ext))
+                .setExt(ByteString.copyFromUtf8(cxnParams.ext))
                 .build();
         xximCore.setCxnParams(SDKTool.getUUId(), req, new RequestCallback<Core.SetCxnParamsResp>() {
             @Override

@@ -1,7 +1,5 @@
 package chat.cherish.xxim.sdk.common;
 
-import java.nio.charset.StandardCharsets;
-
 public class CxnParams {
     public String platform;
     public String deviceId;
@@ -10,10 +8,10 @@ public class CxnParams {
     public String appVersion;
     public String language;
     public String networkUsed;
-    public byte[] ext;
+    public String ext;
 
     public CxnParams(String platform, String deviceId, String deviceModel, String osVersion, String appVersion,
-                     String language, String networkUsed
+                     String language, String networkUsed, String ext
     ) {
         this.platform = platform;
         this.deviceId = deviceId;
@@ -22,6 +20,6 @@ public class CxnParams {
         this.appVersion = appVersion;
         this.language = language;
         this.networkUsed = networkUsed;
-        this.ext = "".getBytes(StandardCharsets.UTF_8);
+        this.ext = ext;
     }
 }
