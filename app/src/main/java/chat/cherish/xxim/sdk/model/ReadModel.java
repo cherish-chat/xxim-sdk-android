@@ -13,12 +13,12 @@ public class ReadModel {
     public String senderId;
     @Index()
     public String convId;
-    public int seq;
+    public long seq;
 
     public ReadModel() {
     }
 
-    public ReadModel(String senderId, String convId, int seq) {
+    public ReadModel(String senderId, String convId, long seq) {
         this.senderId = senderId;
         this.convId = convId;
         this.seq = seq;

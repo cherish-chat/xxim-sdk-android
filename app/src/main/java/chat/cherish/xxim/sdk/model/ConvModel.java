@@ -20,9 +20,9 @@ public class ConvModel {
     public String clientMsgId;
     @Index()
     public String noticeId;
-    public int time;
+    public long time;
     @Index()
-    public int unreadCount;
+    public long unreadCount;
     @Convert(converter = DraftConverter.class, dbType = String.class)
     public DraftModel draftModel;
     public boolean hidden;

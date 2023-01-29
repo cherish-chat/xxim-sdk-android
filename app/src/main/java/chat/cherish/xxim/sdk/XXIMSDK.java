@@ -147,12 +147,12 @@ public class XXIMSDK {
     }
 
     // 设置用户参数
-    public void setUserParams(String userId, String token, byte[] ext, String boxName, List<String> convIdList,
+    public void setUserParams(String userId, String token, String ext, String boxName, List<String> convIdList,
                               OperateCallback<Boolean> callback) {
         Core.SetUserParamsReq req = Core.SetUserParamsReq.newBuilder()
                 .setUserId(userId)
                 .setToken(token)
-                .setExt(ByteString.copyFrom(ext))
+                .setExt(ByteString.copyFromUtf8(ext))
                 .build();
         xximCore.setUserParams(SDKTool.getUUId(), req, new RequestCallback<Core.SetUserParamsResp>() {
             @Override

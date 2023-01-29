@@ -194,8 +194,8 @@ public class SDKManager {
                                     convId,
                                     resp.getConvSeqMapMap().get(convId)
                             );
-                            int minSeq = recordModel.minSeq;
-                            int maxSeq = recordModel.maxSeq;
+                            long minSeq = recordModel.minSeq;
+                            long maxSeq = recordModel.maxSeq;
                             if (recordModel.seq >= minSeq) {
                                 minSeq = recordModel.seq;
                             }
@@ -247,9 +247,9 @@ public class SDKManager {
         }
         RecordModel recordModel;
         if (index != -1) {
-            int minSeq = Integer.parseInt(convSeq.getMinSeq());
-            int maxSeq = Integer.parseInt(convSeq.getMaxSeq());
-            int updateTime = Integer.parseInt(convSeq.getUpdateTime());
+            long minSeq = Long.parseLong(convSeq.getMinSeq());
+            long maxSeq = Long.parseLong(convSeq.getMaxSeq());
+            long updateTime = Long.parseLong(convSeq.getUpdateTime());
             recordModel = recordModelList.get(index);
             boolean updated = false;
             if (recordModel.minSeq != minSeq) {
@@ -637,11 +637,11 @@ public class SDKManager {
     }
 
     // 创建消息
-    public MsgModel createMsg(String clientMsgID, Integer serverTime, String senderInfo, String convId, List<String> atUsers,
+    public MsgModel createMsg(String clientMsgID, Long serverTime, String senderInfo, String convId, List<String> atUsers,
                               int contentType, String content, MsgModel.MsgOptionsModel options, MsgModel.MsgOfflinePushModel offlinePush, String ext
     ) {
-        int timestamp = Long.valueOf(System.currentTimeMillis()).intValue();
-        int seq = 0;
+        long timestamp = System.currentTimeMillis();
+        long seq = 0;
         Query<MsgModel> msgQuery = msgBox().query()
                 .equal(
                         MsgModel_.convId, convId,

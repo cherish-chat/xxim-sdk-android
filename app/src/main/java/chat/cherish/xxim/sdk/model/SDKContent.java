@@ -1,6 +1,6 @@
 package chat.cherish.xxim.sdk.model;
 
-import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson.JSON;
 
 import java.util.List;
 import java.util.Map;
@@ -26,9 +26,9 @@ public class SDKContent {
 
     // 已读消息
     public static class ReadContent {
-        public int seq;
+        public long seq;
 
-        public ReadContent(int seq) {
+        public ReadContent(long seq) {
             this.seq = seq;
         }
 

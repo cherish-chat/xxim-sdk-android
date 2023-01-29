@@ -1,6 +1,6 @@
 package chat.cherish.xxim.sdk.model.converter;
 
-import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson.JSON;
 
 import chat.cherish.xxim.sdk.model.ConvModel;
 import io.objectbox.converter.PropertyConverter;
