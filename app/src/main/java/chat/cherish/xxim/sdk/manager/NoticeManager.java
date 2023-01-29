@@ -49,11 +49,16 @@ public class NoticeManager {
     // 获取多条通知
     public List<NoticeModel> getMultipleNotice(List<String> noticeIdList) {
         QueryBuilder<NoticeModel> noticeBuilder = sdkManager.noticeBox().query();
+        int index = 0;
         for (String noticeId : noticeIdList) {
+            ++index;
             noticeBuilder.equal(
                     NoticeModel_.noticeId, noticeId,
                     QueryBuilder.StringOrder.CASE_SENSITIVE
-            ).or();
+            );
+            if (index < noticeIdList.size()) {
+                noticeBuilder.or();
+            }
         }
         Query<NoticeModel> noticeQuery = noticeBuilder.build();
         List<NoticeModel> noticeModelList = noticeQuery.find();

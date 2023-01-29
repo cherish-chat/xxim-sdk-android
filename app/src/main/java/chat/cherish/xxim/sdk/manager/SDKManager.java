@@ -179,11 +179,16 @@ public class SDKManager {
                         List<Core.BatchGetMsgListByConvIdReq.Item> items = new ArrayList<>();
                         Set<String> convIdList = resp.getConvSeqMapMap().keySet();
                         QueryBuilder<RecordModel> recordBuilder = recordBox().query();
+                        int index = 0;
                         for (String convId : convIdList) {
+                            ++index;
                             recordBuilder.equal(
                                     RecordModel_.convId, convId,
                                     QueryBuilder.StringOrder.CASE_SENSITIVE
-                            ).or();
+                            );
+                            if (index < convIdList.size()) {
+                                recordBuilder.or();
+                            }
                         }
                         Query<RecordModel> recordQuery = recordBuilder.build();
                         List<RecordModel> recordModelList = recordQuery.find();

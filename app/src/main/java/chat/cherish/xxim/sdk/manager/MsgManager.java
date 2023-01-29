@@ -201,11 +201,16 @@ public class MsgManager {
     // 获取多条消息
     public List<MsgModel> getMultipleMsg(List<String> clientMsgIdList) {
         QueryBuilder<MsgModel> msgBuilder = sdkManager.msgBox().query();
+        int index = 0;
         for (String clientMsgId : clientMsgIdList) {
+            ++index;
             msgBuilder.equal(
                     MsgModel_.clientMsgId, clientMsgId,
                     QueryBuilder.StringOrder.CASE_SENSITIVE
-            ).or();
+            );
+            if (index < clientMsgIdList.size()) {
+                msgBuilder.or();
+            }
         }
         Query<MsgModel> msgQuery = msgBuilder.build();
         List<MsgModel> msgModelList = msgQuery.find();
