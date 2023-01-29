@@ -522,5 +522,4 @@ public class MsgManager {
         }
         sdkManager.msgBox().put(list);
     }
-
 }

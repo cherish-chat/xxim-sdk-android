@@ -23,4 +23,13 @@ public class ReadModel {
         this.convId = convId;
         this.seq = seq;
     }
+
+    @Override
+    public String toString() {
+        return "ReadModel{" +
+                "senderId='" + senderId + '\'' +
+                ", convId='" + convId + '\'' +
+                ", seq=" + seq +
+                '}';
+    }
 }

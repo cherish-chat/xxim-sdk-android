@@ -131,6 +131,29 @@ public class MsgModel {
         );
     }
 
+    @Override
+    public String toString() {
+        return "MsgModel{" +
+                "clientMsgId='" + clientMsgId + '\'' +
+                ", serverMsgId='" + serverMsgId + '\'' +
+                ", clientTime=" + clientTime +
+                ", serverTime=" + serverTime +
+                ", senderId='" + senderId + '\'' +
+                ", senderInfo='" + senderInfo + '\'' +
+                ", convId='" + convId + '\'' +
+                ", atUsers=" + atUsers +
+                ", contentType=" + contentType +
+                ", content='" + content + '\'' +
+                ", seq=" + seq +
+                ", options=" + options +
+                ", offlinePush=" + offlinePush +
+                ", ext='" + ext + '\'' +
+                ", sendStatus=" + sendStatus +
+                ", sendProgress=" + sendProgress +
+                ", deleted=" + deleted +
+                '}';
+    }
+
     public static class MsgOptionsModel {
         public boolean storageForServer;
         public boolean storageForClient;
@@ -150,6 +173,18 @@ public class MsgModel {
             this.updateConvMsg = updateConvMsg;
             this.updateUnreadCount = updateUnreadCount;
         }
+
+        @Override
+        public String toString() {
+            return "MsgOptionsModel{" +
+                    "storageForServer=" + storageForServer +
+                    ", storageForClient=" + storageForClient +
+                    ", needDecrypt=" + needDecrypt +
+                    ", offlinePush=" + offlinePush +
+                    ", updateConvMsg=" + updateConvMsg +
+                    ", updateUnreadCount=" + updateUnreadCount +
+                    '}';
+        }
     }
 
     public static class MsgOfflinePushModel {
@@ -164,6 +199,15 @@ public class MsgModel {
             this.title = title;
             this.content = content;
             this.payload = payload;
+        }
+
+        @Override
+        public String toString() {
+            return "MsgOfflinePushModel{" +
+                    "title='" + title + '\'' +
+                    ", content='" + content + '\'' +
+                    ", payload='" + payload + '\'' +
+                    '}';
         }
     }
 }

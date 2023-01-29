@@ -626,7 +626,7 @@ public class SDKManager {
         Query<ConvModel> convQuery = convBox().query().build();
         long count = convQuery.property(ConvModel_.unreadCount).sum();
         convQuery.close();
-        if (unreadListener != null) unreadListener.onUnreadCount((int) count);
+        if (unreadListener != null) unreadListener.onUnreadCount(count);
     }
 
     // 创建消息
@@ -763,5 +763,4 @@ public class SDKManager {
         }
         if (includeMsgConv) updateMsgConv(msgModel);
     }
-
 }

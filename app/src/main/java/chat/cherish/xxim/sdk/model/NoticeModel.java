@@ -59,6 +59,21 @@ public class NoticeModel {
         );
     }
 
+    @Override
+    public String toString() {
+        return "NoticeModel{" +
+                "convId='" + convId + '\'' +
+                ", noticeId='" + noticeId + '\'' +
+                ", createTime=" + createTime +
+                ", title='" + title + '\'' +
+                ", contentType=" + contentType +
+                ", content='" + content + '\'' +
+                ", options=" + options +
+                ", ext='" + ext + '\'' +
+                ", deleted=" + deleted +
+                '}';
+    }
+
     public static class NoticeOptionsModel {
         public boolean storageForClient;
         public boolean updateConvMsg;
@@ -69,6 +84,14 @@ public class NoticeModel {
         public NoticeOptionsModel(boolean storageForClient, boolean updateConvMsg) {
             this.storageForClient = storageForClient;
             this.updateConvMsg = updateConvMsg;
+        }
+
+        @Override
+        public String toString() {
+            return "NoticeOptionsModel{" +
+                    "storageForClient=" + storageForClient +
+                    ", updateConvMsg=" + updateConvMsg +
+                    '}';
         }
     }
 }

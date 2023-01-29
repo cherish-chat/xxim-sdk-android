@@ -68,5 +68,4 @@ public class SDKTool {
             return new String(bytes, StandardCharsets.UTF_8);
         }
     }
-
 }

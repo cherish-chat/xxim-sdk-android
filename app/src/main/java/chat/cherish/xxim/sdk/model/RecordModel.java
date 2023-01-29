@@ -36,4 +36,15 @@ public class RecordModel {
                 Long.parseLong(convSeq.getUpdateTime())
         );
     }
+
+    @Override
+    public String toString() {
+        return "RecordModel{" +
+                "convId='" + convId + '\'' +
+                ", minSeq=" + minSeq +
+                ", maxSeq=" + maxSeq +
+                ", updateTime=" + updateTime +
+                ", seq=" + seq +
+                '}';
+    }
 }

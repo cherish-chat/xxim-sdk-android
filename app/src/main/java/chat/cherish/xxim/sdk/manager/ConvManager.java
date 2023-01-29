@@ -308,10 +308,10 @@ public class ConvManager {
     }
 
     // 获取未读数量
-    public int getUnreadCount() {
+    public long getUnreadCount() {
         Query<ConvModel> convQuery = sdkManager.convBox().query().build();
         long count = convQuery.property(ConvModel_.unreadCount).sum();
         convQuery.close();
-        return (int) count;
+        return count;
     }
 }
