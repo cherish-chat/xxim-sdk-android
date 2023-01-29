@@ -45,6 +45,23 @@ public class ConvModel {
         this.deleted = false;
     }
 
+    @Override
+    public String toString() {
+        return "ConvModel{" +
+                "convId='" + convId + '\'' +
+                ", convType=" + convType +
+                ", clientMsgId='" + clientMsgId + '\'' +
+                ", noticeId='" + noticeId + '\'' +
+                ", time=" + time +
+                ", unreadCount=" + unreadCount +
+                ", draftModel=" + draftModel +
+                ", hidden=" + hidden +
+                ", deleted=" + deleted +
+                ", msgModel=" + msgModel +
+                ", noticeModel=" + noticeModel +
+                '}';
+    }
+
     public static class DraftModel {
         public String content;
         public String ext;
@@ -55,6 +72,14 @@ public class ConvModel {
         public DraftModel(String content, String ext) {
             this.content = content;
             this.ext = ext;
+        }
+
+        @Override
+        public String toString() {
+            return "DraftModel{" +
+                    "content='" + content + '\'' +
+                    ", ext='" + ext + '\'' +
+                    '}';
         }
     }
 }

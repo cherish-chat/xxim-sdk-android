@@ -96,5 +96,4 @@ public class NoticeManager {
         }
         sdkManager.noticeBox().put(list);
     }
-
 }
