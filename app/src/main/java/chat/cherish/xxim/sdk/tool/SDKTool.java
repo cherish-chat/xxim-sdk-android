@@ -29,9 +29,9 @@ public class SDKTool {
         return groupPrefix + id;
     }
 
-    public static List<String> generateSeqList(int minSeq, int maxSeq) {
+    public static List<String> generateSeqList(long minSeq, long maxSeq) {
         List<String> list = new ArrayList<>();
-        for (int i = minSeq + 1; i <= maxSeq; i++) {
+        for (long i = minSeq + 1; i <= maxSeq; i++) {
             list.add(i + "");
         }
         return list;

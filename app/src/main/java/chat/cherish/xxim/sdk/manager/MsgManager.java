@@ -26,7 +26,7 @@ public class MsgManager {
     }
 
     // 获取消息列表
-    public void getMsgList(String convId, Integer contentType, Integer maxSeq, int size,
+    public void getMsgList(String convId, Integer contentType, Long maxSeq, int size,
                            OperateCallback<List<MsgModel>> callback
     ) {
         boolean includeUpper = maxSeq == null;
@@ -60,7 +60,7 @@ public class MsgManager {
                 .build();
         RecordModel recordModel = recordQuery.findFirst();
         recordQuery.close();
-        int minSeq = maxSeq - size;
+        long minSeq = maxSeq - size;
         if (recordModel != null) {
             minSeq = Math.max(minSeq, recordModel.minSeq);
         } else {
@@ -100,8 +100,8 @@ public class MsgManager {
                         .setConvId(convId)
                         .addAllSeqList(seqList)
                         .build());
-                int finalMinSeq = minSeq;
-                Integer finalMaxSeq = maxSeq;
+                long finalMinSeq = minSeq;
+                long finalMaxSeq = maxSeq;
                 sdkManager.pullMsgDataList(items, new RequestCallback<Core.GetMsgListResp>() {
                     @Override
                     public void onSuccess(Core.GetMsgListResp resp) {
@@ -141,7 +141,7 @@ public class MsgManager {
     }
 
     private List<MsgModel> queryMsgList(String convId, Integer contentType,
-                                        int minSeq, int maxSeq, boolean includeUpper, Boolean deleted
+                                        long minSeq, long maxSeq, boolean includeUpper, Boolean deleted
     ) {
         QueryBuilder<MsgModel> msgBuilder = sdkManager.msgBox().query();
         msgBuilder.equal(

@@ -21,8 +21,8 @@ public class MsgModel {
     @Index()
     public String clientMsgId;
     public String serverMsgId;
-    public int clientTime;
-    public int serverTime;
+    public long clientTime;
+    public long serverTime;
     @Index()
     public String senderId;
     public String senderInfo;
@@ -33,7 +33,7 @@ public class MsgModel {
     public int contentType;
     @Index()
     public String content;
-    public int seq;
+    public long seq;
     @Convert(converter = MsgOptionsConverter.class, dbType = String.class)
     public MsgOptionsModel options;
     @Convert(converter = MsgOfflineConverter.class, dbType = String.class)
@@ -46,8 +46,8 @@ public class MsgModel {
     public MsgModel() {
     }
 
-    public MsgModel(String clientMsgId, int clientTime, int serverTime, String senderId, String senderInfo,
-                    String convId, List<String> atUsers, int contentType, String content, int seq,
+    public MsgModel(String clientMsgId, long clientTime, long serverTime, String senderId, String senderInfo,
+                    String convId, List<String> atUsers, int contentType, String content, long seq,
                     MsgOptionsModel options, MsgOfflinePushModel offlinePush, String ext
     ) {
         this.clientMsgId = clientMsgId;
@@ -68,9 +68,9 @@ public class MsgModel {
         this.deleted = false;
     }
 
-    public MsgModel(String clientMsgId, String serverMsgId, int clientTime, int serverTime, String senderId,
+    public MsgModel(String clientMsgId, String serverMsgId, long clientTime, long serverTime, String senderId,
                     String senderInfo, String convId, List<String> atUsers, int contentType, String content,
-                    int seq, MsgOptionsModel options, MsgOfflinePushModel offlinePush, String ext
+                    long seq, MsgOptionsModel options, MsgOfflinePushModel offlinePush, String ext
     ) {
         this.clientMsgId = clientMsgId;
         this.serverMsgId = serverMsgId;
@@ -116,15 +116,15 @@ public class MsgModel {
         return new MsgModel(
                 msgData.getClientMsgId(),
                 msgData.getServerMsgId(),
-                Integer.parseInt(msgData.getClientTime()),
-                Integer.parseInt(msgData.getServerTime()),
+                Long.parseLong(msgData.getClientTime()),
+                Long.parseLong(msgData.getServerTime()),
                 msgData.getSenderId(),
                 msgData.getSenderInfo().toStringUtf8(),
                 msgData.getConvId(),
                 msgData.getAtUsersList(),
                 msgData.getContentType(),
                 content,
-                Integer.parseInt(msgData.getSeq()),
+                Long.parseLong(msgData.getSeq()),
                 options,
                 offlinePush,
                 msgData.getExt().toStringUtf8()

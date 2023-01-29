@@ -12,15 +12,15 @@ public class RecordModel {
 
     @Index()
     public String convId;
-    public int minSeq;
-    public int maxSeq;
-    public int updateTime;
-    public int seq;
+    public long minSeq;
+    public long maxSeq;
+    public long updateTime;
+    public long seq;
 
     public RecordModel() {
     }
 
-    public RecordModel(String convId, int minSeq, int maxSeq, int updateTime) {
+    public RecordModel(String convId, long minSeq, long maxSeq, long updateTime) {
         this.convId = convId;
         this.minSeq = minSeq;
         this.maxSeq = maxSeq;
@@ -31,9 +31,9 @@ public class RecordModel {
     public static RecordModel fromProto(Core.BatchGetConvSeqResp.ConvSeq convSeq) {
         return new RecordModel(
                 convSeq.getConvId(),
-                Integer.parseInt(convSeq.getMinSeq()),
-                Integer.parseInt(convSeq.getMaxSeq()),
-                Integer.parseInt(convSeq.getUpdateTime())
+                Long.parseLong(convSeq.getMinSeq()),
+                Long.parseLong(convSeq.getMaxSeq()),
+                Long.parseLong(convSeq.getUpdateTime())
         );
     }
 }

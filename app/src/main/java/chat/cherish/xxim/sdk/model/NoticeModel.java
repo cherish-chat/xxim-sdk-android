@@ -16,7 +16,7 @@ public class NoticeModel {
     public String convId;
     @Index()
     public String noticeId;
-    public int createTime;
+    public long createTime;
     public String title;
     public int contentType;
     public String content;
@@ -28,7 +28,7 @@ public class NoticeModel {
     public NoticeModel() {
     }
 
-    public NoticeModel(String convId, String noticeId, int createTime, String title, int contentType,
+    public NoticeModel(String convId, String noticeId, long createTime, String title, int contentType,
                        String content, NoticeOptionsModel options, String ext
     ) {
         this.convId = convId;
@@ -50,7 +50,7 @@ public class NoticeModel {
         return new NoticeModel(
                 noticeData.getConvId(),
                 noticeData.getNoticeId(),
-                Integer.parseInt(noticeData.getCreateTime()),
+                Long.parseLong(noticeData.getCreateTime()),
                 noticeData.getTitle(),
                 noticeData.getContentType(),
                 noticeData.getContent().toStringUtf8(),
