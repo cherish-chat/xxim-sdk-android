@@ -23,9 +23,7 @@ public class NoticeManager {
                         QueryBuilder.StringOrder.CASE_SENSITIVE
                 )
                 .and()
-                .equal(
-                        NoticeModel_.deleted, false
-                )
+                .equal(NoticeModel_.deleted, false)
                 .orderDesc(NoticeModel_.createTime)
                 .build();
         List<NoticeModel> noticeModelList = noticeQuery.find(offset, limit);

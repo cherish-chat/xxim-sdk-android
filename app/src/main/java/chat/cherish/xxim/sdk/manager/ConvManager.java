@@ -70,13 +70,9 @@ public class ConvManager {
 
     private List<ConvModel> queryConvList() {
         Query<ConvModel> convQuery = sdkManager.convBox().query()
-                .equal(
-                        ConvModel_.hidden, false
-                )
+                .equal(ConvModel_.hidden, false)
                 .and()
-                .equal(
-                        ConvModel_.deleted, false
-                )
+                .equal(ConvModel_.deleted, false)
                 .orderDesc(ConvModel_.draftModel)
                 .orderDesc(ConvModel_.time)
                 .build();
@@ -126,9 +122,7 @@ public class ConvManager {
         sdkManager.convBox().put(convModel);
         sdkManager.calculateUnreadCount();
         if (convModel.convType != ConvType.msg) return;
-        MsgModel msgModel = msgManager.getFirstMsg(
-                convId
-        );
+        MsgModel msgModel = msgManager.getFirstMsg(convId);
         if (msgModel == null) return;
         msgManager.sendRead(
                 convId,
@@ -157,13 +151,9 @@ public class ConvManager {
                         QueryBuilder.StringOrder.CASE_SENSITIVE
                 )
                 .and()
-                .lessOrEqual(MsgModel_.contentType, ContentType.text)
+                .between(MsgModel_.contentType, ContentType.text, ContentType.custom)
                 .and()
-                .greaterOrEqual(MsgModel_.contentType, ContentType.custom)
-                .and()
-                .equal(
-                        MsgModel_.deleted, false
-                )
+                .equal(MsgModel_.deleted, false)
                 .orderDesc(MsgModel_.seq)
                 .build();
         MsgModel msgModel = msgQuery.findFirst();
@@ -211,9 +201,7 @@ public class ConvManager {
                         QueryBuilder.StringOrder.CASE_SENSITIVE
                 )
                 .and()
-                .equal(
-                        NoticeModel_.deleted, false
-                )
+                .equal(NoticeModel_.deleted, false)
                 .orderDesc(NoticeModel_.createTime)
                 .build();
         NoticeModel noticeModel = noticeQuery.findFirst();
