@@ -149,20 +149,16 @@ public class MsgManager {
                 QueryBuilder.StringOrder.CASE_SENSITIVE
         );
         if (contentType != null) {
-            msgBuilder.and().equal(
-                    MsgModel_.contentType, contentType
-            );
+            msgBuilder.and().equal(MsgModel_.contentType, contentType);
         }
-        msgBuilder.and().less(MsgModel_.seq, minSeq);
-        if (includeUpper) {
-            msgBuilder.and().greaterOrEqual(MsgModel_.seq, maxSeq);
-        } else {
-            msgBuilder.and().greater(MsgModel_.seq, maxSeq);
+        List<String> seqList = SDKTool.generateSeqList(minSeq, includeUpper ? maxSeq : maxSeq - 1);
+        long[] values = new long[seqList.size()];
+        for (int i = 0; i < seqList.size(); i++) {
+            values[i] = Long.parseLong(seqList.get(i));
         }
+        msgBuilder.and().in(MsgModel_.seq, values);
         if (deleted != null) {
-            msgBuilder.and().equal(
-                    MsgModel_.deleted, deleted
-            );
+            msgBuilder.and().equal(MsgModel_.deleted, deleted);
         }
         msgBuilder.orderDesc(MsgModel_.seq);
         Query<MsgModel> msgQuery = msgBuilder.build();
