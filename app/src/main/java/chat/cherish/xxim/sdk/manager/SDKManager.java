@@ -424,7 +424,8 @@ public class SDKManager {
                 .equal(
                         MsgModel_.clientMsgId, msgModel.clientMsgId,
                         QueryBuilder.StringOrder.CASE_SENSITIVE
-                ).build();
+                )
+                .build();
         MsgModel model = msgQuery.findFirst();
         msgQuery.close();
         if (model != null) {
@@ -467,7 +468,8 @@ public class SDKManager {
                 .equal(
                         ReadModel_.convId, msgModel.convId,
                         QueryBuilder.StringOrder.CASE_SENSITIVE
-                ).build();
+                )
+                .build();
         ReadModel readModel = readQuery.findFirst();
         readQuery.close();
         if (readModel != null) {
@@ -490,7 +492,8 @@ public class SDKManager {
                 .equal(
                         ConvModel_.convId, msgModel.convId,
                         QueryBuilder.StringOrder.CASE_SENSITIVE
-                ).build();
+                )
+                .build();
         ConvModel convModel = convQuery.findFirst();
         convQuery.close();
         if (convModel == null) {
@@ -502,7 +505,8 @@ public class SDKManager {
                     .equal(
                             MsgModel_.clientMsgId, convModel.clientMsgId,
                             QueryBuilder.StringOrder.CASE_SENSITIVE
-                    ).build();
+                    )
+                    .build();
             model = msgQuery.findFirst();
             msgQuery.close();
         }
@@ -532,7 +536,8 @@ public class SDKManager {
                     .equal(
                             ReadModel_.convId, msgModel.convId,
                             QueryBuilder.StringOrder.CASE_SENSITIVE
-                    ).build();
+                    )
+                    .build();
             ReadModel readModel = readQuery.findFirst();
             readQuery.close();
             if (readModel != null) {
@@ -651,7 +656,8 @@ public class SDKManager {
                 .equal(
                         MsgModel_.convId, convId,
                         QueryBuilder.StringOrder.CASE_SENSITIVE
-                ).build();
+                )
+                .build();
         MsgModel model = msgQuery.findFirst();
         msgQuery.close();
         if (model != null) {
