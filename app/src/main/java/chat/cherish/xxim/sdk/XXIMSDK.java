@@ -5,6 +5,7 @@ import android.content.Context;
 import com.google.protobuf.ByteString;
 
 import java.util.List;
+import java.util.Map;
 
 import chat.cherish.xxim.core.XXIMCore;
 import chat.cherish.xxim.core.callback.RequestCallback;
@@ -12,6 +13,7 @@ import chat.cherish.xxim.core.listener.ConnectListener;
 import chat.cherish.xxim.core.listener.ReceivePushListener;
 import chat.cherish.xxim.sdk.callback.OperateCallback;
 import chat.cherish.xxim.sdk.callback.SubscribeCallback;
+import chat.cherish.xxim.sdk.common.AesParams;
 import chat.cherish.xxim.sdk.common.CxnParams;
 import chat.cherish.xxim.sdk.listener.ConvListener;
 import chat.cherish.xxim.sdk.listener.MsgListener;
@@ -147,7 +149,7 @@ public class XXIMSDK {
     }
 
     // 设置用户参数
-    public void setUserParams(String userId, String token, String ext, String boxName, List<String> convIdList,
+    public void setUserParams(String userId, String token, String ext, String boxName, Map<String, AesParams> convParams,
                               OperateCallback<Boolean> callback) {
         sdkManager.openDatabase(context, userId, boxName);
         Core.SetUserParamsReq req = Core.SetUserParamsReq.newBuilder()
@@ -158,7 +160,7 @@ public class XXIMSDK {
         xximCore.setUserParams(SDKTool.getUUId(), req, new RequestCallback<Core.SetUserParamsResp>() {
             @Override
             public void onSuccess(Core.SetUserParamsResp setUserParamsResp) {
-                openPullSubscribe(convIdList);
+                openPullSubscribe(convParams);
                 callback.onSuccess(true);
             }
 
@@ -171,8 +173,8 @@ public class XXIMSDK {
     }
 
     // 打开拉取订阅
-    public void openPullSubscribe(List<String> convIdList) {
-        sdkManager.openPullSubscribe(convIdList);
+    public void openPullSubscribe(Map<String, AesParams> convParams) {
+        sdkManager.openPullSubscribe(convParams);
     }
 
     // 关闭拉取订阅

@@ -24,44 +24,6 @@ public class SDKContent {
         }
     }
 
-    // 已读消息
-    public static class ReadContent {
-        public long seq;
-
-        public ReadContent(long seq) {
-            this.seq = seq;
-        }
-
-        public static ReadContent fromJson(String content) {
-            return JSON.parseObject(content, ReadContent.class);
-        }
-
-        public String toJson() {
-            return JSON.toJSONString(this);
-        }
-    }
-
-    // 撤回消息
-    public static class RevokeContent {
-        public String text;
-        public int contentType;
-        public String content;
-
-        public RevokeContent(String text, int contentType, String content) {
-            this.text = text;
-            this.contentType = contentType;
-            this.content = content;
-        }
-
-        public static RevokeContent fromJson(String content) {
-            return JSON.parseObject(content, RevokeContent.class);
-        }
-
-        public String toJson() {
-            return JSON.toJSONString(this);
-        }
-    }
-
     // 提示消息
     public static class TipContent {
         public String tip;
@@ -148,9 +110,10 @@ public class SDKContent {
         public int duration;
         public int width;
         public int height;
+        public int size;
 
         public VideoContent(String coverName, String coverPath, String coverUrl, String videoName, String videoPath,
-                            String videoUrl, int duration, int width, int height
+                            String videoUrl, int duration, int width, int height, int size
         ) {
             this.coverName = coverName;
             this.coverPath = coverPath;
@@ -161,6 +124,7 @@ public class SDKContent {
             this.duration = duration;
             this.width = width;
             this.height = height;
+            this.size = size;
         }
 
         public static VideoContent fromJson(String content) {
@@ -295,15 +259,15 @@ public class SDKContent {
     }
 
     // 富文本消息
-    public static class RichTxtContent {
+    public static class RichTextContent {
         public List<Map<String, Object>> list;
 
-        public RichTxtContent(List<Map<String, Object>> list) {
+        public RichTextContent(List<Map<String, Object>> list) {
             this.list = list;
         }
 
-        public static RichTxtContent fromJson(String content) {
-            return JSON.parseObject(content, RichTxtContent.class);
+        public static RichTextContent fromJson(String content) {
+            return JSON.parseObject(content, RichTextContent.class);
         }
 
         public String toJson() {
@@ -344,6 +308,26 @@ public class SDKContent {
 
         public static CustomContent fromJson(String content) {
             return JSON.parseObject(content, CustomContent.class);
+        }
+
+        public String toJson() {
+            return JSON.toJSONString(this);
+        }
+    }
+
+    // 已读消息
+    public static class ReadContent {
+        public String senderId;
+        public String convId;
+        public long seq;
+
+        public ReadContent(String convId, long seq) {
+            this.convId = convId;
+            this.seq = seq;
+        }
+
+        public static ReadContent fromJson(String content) {
+            return JSON.parseObject(content, ReadContent.class);
         }
 
         public String toJson() {
