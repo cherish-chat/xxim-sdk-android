@@ -1,6 +1,8 @@
 package chat.cherish.xxim.sdk;
 
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.text.TextUtils;
 
 import com.google.protobuf.ByteString;
 
@@ -30,6 +32,7 @@ import pb.Core;
 public class XXIMSDK {
 
     private Context context;
+    private SharedPreferences preferences;
     private XXIMCore xximCore;
     private SDKManager sdkManager;
 
@@ -44,6 +47,7 @@ public class XXIMSDK {
                      UnreadListener unreadListener
     ) {
         this.context = context;
+        preferences = context.getSharedPreferences("xxim", Context.MODE_PRIVATE);
         xximCore = new XXIMCore();
         xximCore.init(
                 requestTimeout,
@@ -125,7 +129,15 @@ public class XXIMSDK {
 
     // 设置连接参数
     public void setCxnParams(CxnParams cxnParams, OperateCallback<Boolean> callback) {
+        String packageId = preferences.getString("packageId", "");
+        if (TextUtils.isEmpty(packageId)) {
+            packageId = SDKTool.getUUId();
+            SharedPreferences.Editor editor = preferences.edit();
+            editor.putString("packageId", packageId);
+            editor.apply();
+        }
         Core.SetCxnParamsReq req = Core.SetCxnParamsReq.newBuilder()
+                .setPackageId(packageId)
                 .setPlatform(cxnParams.platform)
                 .setDeviceId(cxnParams.deviceId)
                 .setDeviceModel(cxnParams.deviceModel)
