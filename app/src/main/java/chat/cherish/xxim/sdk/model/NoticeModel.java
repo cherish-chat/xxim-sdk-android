@@ -45,7 +45,7 @@ public class NoticeModel {
     public static NoticeModel fromProto(Core.NoticeData noticeData) {
         NoticeOptionsModel options = new NoticeOptionsModel(
                 noticeData.getOptions().getStorageForClient(),
-                noticeData.getOptions().getUpdateConvMsg()
+                noticeData.getOptions().getUpdateConvNotice()
         );
         return new NoticeModel(
                 noticeData.getConvId(),
@@ -76,21 +76,21 @@ public class NoticeModel {
 
     public static class NoticeOptionsModel {
         public boolean storageForClient;
-        public boolean updateConvMsg;
+        public boolean updateConvNotice;
 
         public NoticeOptionsModel() {
         }
 
-        public NoticeOptionsModel(boolean storageForClient, boolean updateConvMsg) {
+        public NoticeOptionsModel(boolean storageForClient, boolean updateConvNotice) {
             this.storageForClient = storageForClient;
-            this.updateConvMsg = updateConvMsg;
+            this.updateConvNotice = updateConvNotice;
         }
 
         @Override
         public String toString() {
             return "NoticeOptionsModel{" +
                     "storageForClient=" + storageForClient +
-                    ", updateConvMsg=" + updateConvMsg +
+                    ", updateConvNotice=" + updateConvNotice +
                     '}';
         }
     }

@@ -2,7 +2,7 @@ package chat.cherish.xxim.sdk.manager;
 
 import java.util.List;
 
-import chat.cherish.xxim.sdk.common.ContentType;
+import chat.cherish.xxim.sdk.common.NoticeContentType;
 import chat.cherish.xxim.sdk.model.NoticeModel;
 import chat.cherish.xxim.sdk.model.NoticeModel_;
 import io.objectbox.query.Query;
@@ -75,7 +75,7 @@ public class NoticeManager {
         NoticeModel noticeModel = noticeQuery.findFirst();
         noticeQuery.close();
         if (noticeModel == null) return;
-        noticeModel.contentType = ContentType.unknown;
+        noticeModel.contentType = NoticeContentType.invalid;
         noticeModel.content = "";
         noticeModel.deleted = true;
         sdkManager.noticeBox().put(noticeModel);
@@ -93,7 +93,7 @@ public class NoticeManager {
         noticeQuery.close();
         if (list.isEmpty()) return;
         for (NoticeModel noticeModel : list) {
-            noticeModel.contentType = ContentType.unknown;
+            noticeModel.contentType = NoticeContentType.invalid;
             noticeModel.content = "";
             noticeModel.deleted = true;
         }

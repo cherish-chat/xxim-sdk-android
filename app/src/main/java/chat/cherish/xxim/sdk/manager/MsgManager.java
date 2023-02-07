@@ -7,7 +7,7 @@ import java.util.List;
 
 import chat.cherish.xxim.core.callback.RequestCallback;
 import chat.cherish.xxim.sdk.callback.OperateCallback;
-import chat.cherish.xxim.sdk.common.ContentType;
+import chat.cherish.xxim.sdk.common.MsgContentType;
 import chat.cherish.xxim.sdk.model.MsgModel;
 import chat.cherish.xxim.sdk.model.MsgModel_;
 import chat.cherish.xxim.sdk.model.RecordModel;
@@ -220,12 +220,6 @@ public class MsgManager {
     }
 
     // 发送正在输入
-    public void sendTyping(String convId, SDKContent.TypingContent content,
-                           OperateCallback<List<MsgModel>> callback) {
-        sendTyping(convId, content, "", callback);
-    }
-
-    // 发送正在输入
     public void sendTyping(String convId, SDKContent.TypingContent content, String ext,
                            OperateCallback<List<MsgModel>> callback) {
         List<MsgModel> msgModelList = new ArrayList<>();
@@ -234,7 +228,7 @@ public class MsgManager {
                         null,
                         convId,
                         new ArrayList<>(),
-                        ContentType.typing,
+                        MsgContentType.typing,
                         content.toJson(),
                         new MsgModel.MsgOptionsModel(
                                 false, false, false, false, false, false
@@ -248,63 +242,6 @@ public class MsgManager {
         sendMsgList(msgModelList, 0, callback);
     }
 
-    // 发送已读消息
-    public void sendRead(String convId, SDKContent.ReadContent content,
-                         OperateCallback<List<MsgModel>> callback) {
-        sendRead(convId, content, true, true, "", callback);
-    }
-
-    // 发送已读消息
-    public void sendRead(String convId, SDKContent.ReadContent content, boolean storageForServer, boolean storageForClient,
-                         String ext, OperateCallback<List<MsgModel>> callback) {
-        List<MsgModel> msgModelList = new ArrayList<>();
-        msgModelList.add(
-                sdkManager.createMsg(
-                        null,
-                        convId,
-                        new ArrayList<>(),
-                        ContentType.read,
-                        content.toJson(),
-                        new MsgModel.MsgOptionsModel(
-                                storageForServer, storageForClient, false, false, false, false
-                        ),
-                        new MsgModel.MsgOfflinePushModel(
-                                "", "", ""
-                        ),
-                        ext
-                )
-        );
-        sendMsgList(msgModelList, 0, callback);
-    }
-
-    // 发送撤回消息
-    public void sendRevoke(String clientMsgId, SDKContent.RevokeContent content,
-                           OperateCallback<List<MsgModel>> callback) {
-        sendRevoke(clientMsgId, content, "", callback);
-    }
-
-    // 发送撤回消息
-    public void sendRevoke(String clientMsgId, SDKContent.RevokeContent content, String ext,
-                           OperateCallback<List<MsgModel>> callback) {
-        MsgModel msgModel = getSingleMsg(clientMsgId);
-        if (msgModel == null) return;
-        content.contentType = msgModel.contentType;
-        content.content = msgModel.content;
-        msgModel.contentType = ContentType.revoke;
-        msgModel.content = content.toJson();
-        msgModel.offlinePush.content = content.content;
-        msgModel.ext = ext;
-        List<MsgModel> msgModelList = new ArrayList<>();
-        msgModelList.add(msgModel);
-        sendMsgList(msgModelList, 0, callback);
-    }
-
-    // 发送提示消息
-    public void sendTip(String convId, SDKContent.TipContent content,
-                        OperateCallback<List<MsgModel>> callback) {
-        sendTip(convId, content, "", callback);
-    }
-
     // 发送提示消息
     public void sendTip(String convId, SDKContent.TipContent content, String ext,
                         OperateCallback<List<MsgModel>> callback) {
@@ -314,7 +251,7 @@ public class MsgManager {
                         null,
                         convId,
                         new ArrayList<>(),
-                        ContentType.tip,
+                        MsgContentType.tip,
                         content.toJson(),
                         new MsgModel.MsgOptionsModel(
                                 true, true, false, false, false, false
@@ -333,10 +270,10 @@ public class MsgManager {
                                MsgModel.MsgOptionsModel options, MsgModel.MsgOfflinePushModel offlinePush, String ext) {
         if (options == null) {
             options = new MsgModel.MsgOptionsModel(
-                    true, true, true, true, true, true
+                    true, true, false, true, true, true
             );
         }
-        return sdkManager.createMsg(senderInfo, convId, atUsers, ContentType.text, text, options, offlinePush, ext);
+        return sdkManager.createMsg(senderInfo, convId, atUsers, MsgContentType.text, text, options, offlinePush, ext);
     }
 
     // 创建图片消息
@@ -344,10 +281,10 @@ public class MsgManager {
                                 MsgModel.MsgOptionsModel options, MsgModel.MsgOfflinePushModel offlinePush, String ext) {
         if (options == null) {
             options = new MsgModel.MsgOptionsModel(
-                    true, true, true, true, true, true
+                    true, true, false, true, true, true
             );
         }
-        return sdkManager.createMsg(senderInfo, convId, atUsers, ContentType.image, content.toJson(), options, offlinePush, ext);
+        return sdkManager.createMsg(senderInfo, convId, atUsers, MsgContentType.image, content.toJson(), options, offlinePush, ext);
     }
 
     // 创建语音消息
@@ -355,10 +292,10 @@ public class MsgManager {
                                 MsgModel.MsgOptionsModel options, MsgModel.MsgOfflinePushModel offlinePush, String ext) {
         if (options == null) {
             options = new MsgModel.MsgOptionsModel(
-                    true, true, true, true, true, true
+                    true, true, false, true, true, true
             );
         }
-        return sdkManager.createMsg(senderInfo, convId, atUsers, ContentType.audio, content.toJson(), options, offlinePush, ext);
+        return sdkManager.createMsg(senderInfo, convId, atUsers, MsgContentType.audio, content.toJson(), options, offlinePush, ext);
     }
 
     // 创建视频消息
@@ -366,10 +303,10 @@ public class MsgManager {
                                 MsgModel.MsgOptionsModel options, MsgModel.MsgOfflinePushModel offlinePush, String ext) {
         if (options == null) {
             options = new MsgModel.MsgOptionsModel(
-                    true, true, true, true, true, true
+                    true, true, false, true, true, true
             );
         }
-        return sdkManager.createMsg(senderInfo, convId, atUsers, ContentType.video, content.toJson(), options, offlinePush, ext);
+        return sdkManager.createMsg(senderInfo, convId, atUsers, MsgContentType.video, content.toJson(), options, offlinePush, ext);
     }
 
     // 创建文件消息
@@ -377,10 +314,10 @@ public class MsgManager {
                                MsgModel.MsgOptionsModel options, MsgModel.MsgOfflinePushModel offlinePush, String ext) {
         if (options == null) {
             options = new MsgModel.MsgOptionsModel(
-                    true, true, true, true, true, true
+                    true, true, false, true, true, true
             );
         }
-        return sdkManager.createMsg(senderInfo, convId, atUsers, ContentType.file, content.toJson(), options, offlinePush, ext);
+        return sdkManager.createMsg(senderInfo, convId, atUsers, MsgContentType.file, content.toJson(), options, offlinePush, ext);
     }
 
     // 创建位置消息
@@ -388,10 +325,10 @@ public class MsgManager {
                                    MsgModel.MsgOptionsModel options, MsgModel.MsgOfflinePushModel offlinePush, String ext) {
         if (options == null) {
             options = new MsgModel.MsgOptionsModel(
-                    true, true, true, true, true, true
+                    true, true, false, true, true, true
             );
         }
-        return sdkManager.createMsg(senderInfo, convId, atUsers, ContentType.location, content.toJson(), options, offlinePush, ext);
+        return sdkManager.createMsg(senderInfo, convId, atUsers, MsgContentType.location, content.toJson(), options, offlinePush, ext);
     }
 
     // 创建名片消息
@@ -399,10 +336,10 @@ public class MsgManager {
                                MsgModel.MsgOptionsModel options, MsgModel.MsgOfflinePushModel offlinePush, String ext) {
         if (options == null) {
             options = new MsgModel.MsgOptionsModel(
-                    true, true, true, true, true, true
+                    true, true, false, true, true, true
             );
         }
-        return sdkManager.createMsg(senderInfo, convId, atUsers, ContentType.card, content.toJson(), options, offlinePush, ext);
+        return sdkManager.createMsg(senderInfo, convId, atUsers, MsgContentType.card, content.toJson(), options, offlinePush, ext);
     }
 
     // 创建合并消息
@@ -410,10 +347,10 @@ public class MsgManager {
                                 MsgModel.MsgOptionsModel options, MsgModel.MsgOfflinePushModel offlinePush, String ext) {
         if (options == null) {
             options = new MsgModel.MsgOptionsModel(
-                    true, true, true, true, true, true
+                    true, true, false, true, true, true
             );
         }
-        return sdkManager.createMsg(senderInfo, convId, atUsers, ContentType.merge, content.toJson(), options, offlinePush, ext);
+        return sdkManager.createMsg(senderInfo, convId, atUsers, MsgContentType.merge, content.toJson(), options, offlinePush, ext);
     }
 
     // 创建表情消息
@@ -421,10 +358,10 @@ public class MsgManager {
                                 MsgModel.MsgOptionsModel options, MsgModel.MsgOfflinePushModel offlinePush, String ext) {
         if (options == null) {
             options = new MsgModel.MsgOptionsModel(
-                    true, true, true, true, true, true
+                    true, true, false, true, true, true
             );
         }
-        return sdkManager.createMsg(senderInfo, convId, atUsers, ContentType.emoji, content.toJson(), options, offlinePush, ext);
+        return sdkManager.createMsg(senderInfo, convId, atUsers, MsgContentType.emoji, content.toJson(), options, offlinePush, ext);
     }
 
     // 创建表情消息
@@ -432,21 +369,21 @@ public class MsgManager {
                                   MsgModel.MsgOptionsModel options, MsgModel.MsgOfflinePushModel offlinePush, String ext) {
         if (options == null) {
             options = new MsgModel.MsgOptionsModel(
-                    true, true, true, true, true, true
+                    true, true, false, true, true, true
             );
         }
-        return sdkManager.createMsg(senderInfo, convId, atUsers, ContentType.command, content.toJson(), options, offlinePush, ext);
+        return sdkManager.createMsg(senderInfo, convId, atUsers, MsgContentType.command, content.toJson(), options, offlinePush, ext);
     }
 
     // 创建富文本消息
-    public MsgModel createRichTxt(String senderInfo, String convId, List<String> atUsers, SDKContent.RichTxtContent content,
-                                  MsgModel.MsgOptionsModel options, MsgModel.MsgOfflinePushModel offlinePush, String ext) {
+    public MsgModel createRichText(String senderInfo, String convId, List<String> atUsers, SDKContent.RichTextContent content,
+                                   MsgModel.MsgOptionsModel options, MsgModel.MsgOfflinePushModel offlinePush, String ext) {
         if (options == null) {
             options = new MsgModel.MsgOptionsModel(
-                    true, true, true, true, true, true
+                    true, true, false, true, true, true
             );
         }
-        return sdkManager.createMsg(senderInfo, convId, atUsers, ContentType.richTxt, content.toJson(), options, offlinePush, ext);
+        return sdkManager.createMsg(senderInfo, convId, atUsers, MsgContentType.richText, content.toJson(), options, offlinePush, ext);
     }
 
     // 创建标记消息
@@ -454,10 +391,10 @@ public class MsgManager {
                                    MsgModel.MsgOptionsModel options, MsgModel.MsgOfflinePushModel offlinePush, String ext) {
         if (options == null) {
             options = new MsgModel.MsgOptionsModel(
-                    true, true, true, true, true, true
+                    true, true, false, true, true, true
             );
         }
-        return sdkManager.createMsg(senderInfo, convId, atUsers, ContentType.markdown, content.toJson(), options, offlinePush, ext);
+        return sdkManager.createMsg(senderInfo, convId, atUsers, MsgContentType.markdown, content.toJson(), options, offlinePush, ext);
     }
 
     // 创建自定义消息
@@ -465,10 +402,10 @@ public class MsgManager {
                                  MsgModel.MsgOptionsModel options, MsgModel.MsgOfflinePushModel offlinePush, String ext) {
         if (options == null) {
             options = new MsgModel.MsgOptionsModel(
-                    true, true, true, true, true, true
+                    true, true, false, true, true, true
             );
         }
-        return sdkManager.createMsg(senderInfo, convId, atUsers, ContentType.custom, content.toJson(), options, offlinePush, ext);
+        return sdkManager.createMsg(senderInfo, convId, atUsers, MsgContentType.custom, content.toJson(), options, offlinePush, ext);
     }
 
     // 发送消息列表
@@ -481,6 +418,32 @@ public class MsgManager {
     public void sendMsgList(String senderInfo, List<MsgModel> msgModelList, int deliverAfter,
                             OperateCallback<List<MsgModel>> callback) {
         sdkManager.sendMsgList(senderInfo, msgModelList, deliverAfter, callback);
+    }
+
+    // 发送已读消息
+    public void sendReadMsg(SDKContent.ReadContent content, OperateCallback<Boolean> callback) {
+        sdkManager.sendReadMsg(content, callback);
+    }
+
+    // 发送撤回消息
+    public void sendRevokeMsg(String clientMsgId, SDKContent.TipContent content,
+                              OperateCallback<Boolean> callback) {
+        MsgModel msgModel = getSingleMsg(clientMsgId);
+        if (msgModel == null || msgModel.serverMsgId == null) {
+            callback.onError(
+                    Core.ResponseBody.Code.UnknownError_VALUE,
+                    Core.ResponseBody.Code.UnknownError.name()
+            );
+            return;
+        }
+        msgModel.contentType = MsgContentType.tip;
+        msgModel.content = content.toJson();
+        sdkManager.sendEditMsg(msgModel, callback);
+    }
+
+    // 发送编辑消息
+    public void sendEditMsg(MsgModel msgModel, OperateCallback<Boolean> callback) {
+        sdkManager.sendEditMsg(msgModel, callback);
     }
 
     // 更新消息
@@ -499,7 +462,7 @@ public class MsgManager {
         MsgModel msgModel = msgQuery.findFirst();
         msgQuery.close();
         if (msgModel == null) return;
-        msgModel.contentType = ContentType.unknown;
+        msgModel.contentType = MsgContentType.unknown;
         msgModel.content = "";
         msgModel.deleted = true;
         sdkManager.msgBox().put(msgModel);
@@ -517,7 +480,7 @@ public class MsgManager {
         msgQuery.close();
         if (list.isEmpty()) return;
         for (MsgModel msgModel : list) {
-            msgModel.contentType = ContentType.unknown;
+            msgModel.contentType = MsgContentType.unknown;
             msgModel.content = "";
             msgModel.deleted = true;
         }

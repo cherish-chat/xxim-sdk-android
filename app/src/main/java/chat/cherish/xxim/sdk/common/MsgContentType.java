@@ -1,11 +1,9 @@
 package chat.cherish.xxim.sdk.common;
 
-public class ContentType {
+public class MsgContentType {
     public static int unknown = 0; // 未知类型
     public static int typing = 1; // 正在输入
-    public static int read = 2; // 已读
-    public static int revoke = 3; // 撤回
-    public static int tip = 4; // 提示
+    public static int tip = 2; // 提示
 
     public static int text = 11; // 文本
     public static int image = 12; // 图片
@@ -17,7 +15,7 @@ public class ContentType {
     public static int merge = 18; // 合并
     public static int emoji = 19; // 表情
     public static int command = 20; // 命令
-    public static int richTxt = 21; // 富文本
+    public static int richText = 21; // 富文本
     public static int markdown = 22; // markdown
 
     public static int custom = 100; // 自定义消息

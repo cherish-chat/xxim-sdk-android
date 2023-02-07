@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 
 import chat.cherish.xxim.sdk.callback.OperateCallback;
-import chat.cherish.xxim.sdk.common.ContentType;
 import chat.cherish.xxim.sdk.common.ConvType;
 import chat.cherish.xxim.sdk.model.ConvModel;
 import chat.cherish.xxim.sdk.model.ConvModel_;
@@ -124,12 +123,11 @@ public class ConvManager {
         if (convModel.convType != ConvType.msg) return;
         MsgModel msgModel = msgManager.getFirstMsg(convId);
         if (msgModel == null) return;
-        msgManager.sendRead(
-                convId,
+        msgManager.sendReadMsg(
                 new SDKContent.ReadContent(
-                        msgModel.seq
+                        convId, msgModel.seq
                 ),
-                new OperateCallback<List<MsgModel>>() {
+                new OperateCallback<Boolean>() {
                 }
         );
     }
@@ -150,8 +148,6 @@ public class ConvManager {
                         MsgModel_.convId, convId,
                         QueryBuilder.StringOrder.CASE_SENSITIVE
                 )
-                .and()
-                .between(MsgModel_.contentType, ContentType.text, ContentType.custom)
                 .and()
                 .equal(MsgModel_.deleted, false)
                 .orderDesc(MsgModel_.seq)

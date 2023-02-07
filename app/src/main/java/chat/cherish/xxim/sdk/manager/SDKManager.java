@@ -4,6 +4,7 @@ import android.content.Context;
 import android.text.TextUtils;
 
 import com.google.protobuf.ByteString;
+import com.google.protobuf.InvalidProtocolBufferException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,8 +18,8 @@ import chat.cherish.xxim.core.callback.RequestCallback;
 import chat.cherish.xxim.sdk.callback.OperateCallback;
 import chat.cherish.xxim.sdk.callback.SubscribeCallback;
 import chat.cherish.xxim.sdk.common.AesParams;
-import chat.cherish.xxim.sdk.common.ContentType;
 import chat.cherish.xxim.sdk.common.ConvType;
+import chat.cherish.xxim.sdk.common.NoticeContentType;
 import chat.cherish.xxim.sdk.common.SendStatus;
 import chat.cherish.xxim.sdk.listener.ConvListener;
 import chat.cherish.xxim.sdk.listener.MsgListener;
@@ -148,22 +149,22 @@ public class SDKManager {
     }
 
     // 打开拉取订阅
-    public void openPullSubscribe(List<String> convIdList) {
+    public void openPullSubscribe(Map<String, AesParams> convParams) {
         pullStatus = true;
         cancelTimer();
         if (pullListener != null) pullListener.onStart();
-        if (convIdList == null) {
+        if (convParams == null) {
             if (subscribeCallback != null) {
-                convIdList = subscribeCallback.onConvIdList();
+                convParams = subscribeCallback.onConvParams();
             }
         }
-        if (convIdList == null || convIdList.isEmpty()) {
+        if (convParams == null || convParams.isEmpty()) {
             if (pullListener != null) pullListener.onEnd();
             if (pullStatus) startTimer();
             return;
         }
         Core.BatchGetConvSeqReq req = Core.BatchGetConvSeqReq.newBuilder()
-                .addAllConvIdList(convIdList)
+                .addAllConvIdList(convParams.keySet())
                 .build();
         xximCore.batchGetConvSeq(
                 SDKTool.getUUId(),
@@ -283,14 +284,6 @@ public class SDKManager {
         cancelTimer();
     }
 
-    private Map<String, AesParams> convAesParams(List<Core.MsgData> msgDataList) {
-        List<String> convIdList = new ArrayList<>();
-        for (Core.MsgData msgData : msgDataList) {
-            convIdList.add(msgData.getConvId());
-        }
-        return subscribeCallback.onConvAesParams(convIdList);
-    }
-
     public void pullMsgDataList(List<Core.BatchGetMsgListByConvIdReq.Item> items,
                                 RequestCallback<Core.GetMsgListResp> callback
     ) {
@@ -303,7 +296,7 @@ public class SDKManager {
                 new RequestCallback<Core.GetMsgListResp>() {
                     @Override
                     public void onSuccess(Core.GetMsgListResp resp) {
-                        Map<String, AesParams> convAesMap = convAesParams(resp.getMsgDataListList());
+                        Map<String, AesParams> convAesMap = subscribeCallback.onConvParams();
                         for (Core.MsgData msgData : resp.getMsgDataListList()) {
                             handleMsg(msgData, convAesMap.get(msgData.getConvId()));
                         }
@@ -329,9 +322,7 @@ public class SDKManager {
             @Override
             public void onSuccess(Core.GetMsgByIdResp resp) {
                 Core.MsgData msgData = resp.getMsgData();
-                List<Core.MsgData> msgDataList = new ArrayList<>();
-                msgDataList.add(msgData);
-                Map<String, AesParams> convAesMap = convAesParams(msgDataList);
+                Map<String, AesParams> convAesMap = subscribeCallback.onConvParams();
                 callback.onSuccess(handleMsg(msgData, convAesMap.get(msgData.getConvId())));
             }
 
@@ -345,7 +336,7 @@ public class SDKManager {
     // 推送消息列表
     public void onPushMsgDataList(List<Core.MsgData> msgDataList) {
         boolean isFirstPull = msgBox().count() == 0;
-        Map<String, AesParams> convAesMap = convAesParams(msgDataList);
+        Map<String, AesParams> convAesMap = subscribeCallback.onConvParams();
         List<MsgModel> msgModelList = new ArrayList<>();
         for (Core.MsgData msgData : msgDataList) {
             msgModelList.add(handleMsg(msgData, convAesMap.get(msgData.getConvId())));
@@ -390,10 +381,7 @@ public class SDKManager {
         msgModel.sendStatus = SendStatus.success;
         updateRecord(msgModel);
         updateMsg(msgModel);
-        if (!msgData.getServerMsgId().isEmpty()) {
-            updateRead(msgModel);
-            updateMsgConv(msgModel);
-        }
+        updateMsgConv(msgModel);
         return msgModel;
     }
 
@@ -450,40 +438,13 @@ public class SDKManager {
                 model.seq = msgModel.seq;
                 updated = true;
             }
+            if (!TextUtils.equals(model.ext, msgModel.ext)) {
+                model.ext = msgModel.ext;
+                updated = true;
+            }
             if (updated) msgBox().put(model);
         } else {
             msgBox().put(msgModel);
-        }
-    }
-
-    private void updateRead(MsgModel msgModel) {
-        if (msgModel.contentType != ContentType.read) return;
-        SDKContent.ReadContent content = SDKContent.ReadContent.fromJson(msgModel.content);
-        Query<ReadModel> readQuery = readBox().query()
-                .equal(
-                        ReadModel_.senderId, msgModel.senderId,
-                        QueryBuilder.StringOrder.CASE_SENSITIVE
-                )
-                .and()
-                .equal(
-                        ReadModel_.convId, msgModel.convId,
-                        QueryBuilder.StringOrder.CASE_SENSITIVE
-                )
-                .build();
-        ReadModel readModel = readQuery.findFirst();
-        readQuery.close();
-        if (readModel != null) {
-            if (content.seq > readModel.seq) {
-                readModel.seq = content.seq;
-                readBox().put(readModel);
-            }
-        } else {
-            readModel = new ReadModel(
-                    msgModel.senderId,
-                    msgModel.convId,
-                    content.seq
-            );
-            readBox().put(readModel);
         }
     }
 
@@ -560,8 +521,17 @@ public class SDKManager {
     // 处理通知
     private NoticeModel handleNotice(Core.NoticeData noticeData) {
         NoticeModel noticeModel = NoticeModel.fromProto(noticeData);
-        updateNotice(noticeModel);
-        updateNoticeConv(noticeModel);
+        if (noticeModel.contentType == NoticeContentType.read) {
+            handleReadMsg(noticeModel.content);
+        } else if (noticeModel.contentType == NoticeContentType.edit) {
+            try {
+                handleEditMsg(Core.MsgData.parseFrom(noticeData.getContent()));
+            } catch (InvalidProtocolBufferException ignored) {
+            }
+        } else {
+            updateNotice(noticeModel);
+            updateNoticeConv(noticeModel);
+        }
         return noticeModel;
     }
 
@@ -590,6 +560,7 @@ public class SDKManager {
     }
 
     private void updateNoticeConv(NoticeModel noticeModel) {
+        if (!noticeModel.options.updateConvNotice) return;
         Query<ConvModel> convQuery = convBox().query()
                 .equal(
                         ConvModel_.convId, noticeModel.convId,
@@ -612,23 +583,56 @@ public class SDKManager {
             model = noticeQuery.findFirst();
             noticeQuery.close();
         }
-        if (noticeModel.options.updateConvMsg) {
-            if (model != null) {
-                if (!TextUtils.equals(model.noticeId, noticeModel.noticeId)) {
-                    convModel.noticeId = noticeModel.noticeId;
-                    convModel.time = noticeModel.createTime;
-                    convModel.hidden = false;
-                    convModel.deleted = false;
-                }
-            } else {
+        if (model != null) {
+            if (!TextUtils.equals(model.noticeId, noticeModel.noticeId)) {
                 convModel.noticeId = noticeModel.noticeId;
                 convModel.time = noticeModel.createTime;
                 convModel.hidden = false;
                 convModel.deleted = false;
             }
+        } else {
+            convModel.noticeId = noticeModel.noticeId;
+            convModel.time = noticeModel.createTime;
+            convModel.hidden = false;
+            convModel.deleted = false;
         }
         ++convModel.unreadCount;
         convBox().put(convModel);
+    }
+
+    private void handleReadMsg(String content) {
+        SDKContent.ReadContent readContent = SDKContent.ReadContent.fromJson(content);
+        Query<ReadModel> readQuery = readBox().query()
+                .equal(
+                        ReadModel_.senderId, readContent.senderId,
+                        QueryBuilder.StringOrder.CASE_SENSITIVE
+                )
+                .and()
+                .equal(
+                        ReadModel_.convId, readContent.convId,
+                        QueryBuilder.StringOrder.CASE_SENSITIVE
+                )
+                .build();
+        ReadModel readModel = readQuery.findFirst();
+        readQuery.close();
+        if (readModel != null) {
+            if (readContent.seq > readModel.seq) {
+                readModel.seq = readContent.seq;
+                readBox().put(readModel);
+            }
+        } else {
+            readModel = new ReadModel(
+                    readContent.senderId,
+                    readContent.convId,
+                    readContent.seq
+            );
+            readBox().put(readModel);
+        }
+    }
+
+    private void handleEditMsg(Core.MsgData msgData) {
+        Map<String, AesParams> convParams = subscribeCallback.onConvParams();
+        handleMsg(msgData, convParams.get(msgData.getConvId()));
     }
 
     // 计算未读数量
@@ -699,11 +703,7 @@ public class SDKManager {
     public void sendMsgList(String senderInfo, List<MsgModel> msgModelList, int deliverAfter,
                             OperateCallback<List<MsgModel>> callback
     ) {
-        List<String> convIdList = new ArrayList<>();
-        for (MsgModel msgModel : msgModelList) {
-            convIdList.add(msgModel.convId);
-        }
-        Map<String, AesParams> convAesMap = subscribeCallback.onConvAesParams(convIdList);
+        Map<String, AesParams> convAesMap = subscribeCallback.onConvParams();
         Core.SendMsgListReq.Builder builder = Core.SendMsgListReq.newBuilder();
         for (MsgModel msgModel : msgModelList) {
             if (senderInfo != null) {
@@ -711,7 +711,7 @@ public class SDKManager {
             }
             ByteString content = ByteString.copyFromUtf8(msgModel.content);
             AesParams aesParams = convAesMap.get(msgModel.convId);
-            if (msgModel.options.needDecrypt && aesParams != null) {
+            if (msgModel.options.needDecrypt) {
                 content = ByteString.copyFrom(
                         SDKTool.aesEncode(aesParams.key, aesParams.iv, msgModel.content)
                 );
@@ -763,6 +763,87 @@ public class SDKManager {
                     msgModel.sendStatus = SendStatus.failed;
                     upsertMsg(msgModel, true);
                 }
+                callback.onError(code, error);
+            }
+        });
+    }
+
+    // 发送已读消息
+    public void sendReadMsg(SDKContent.ReadContent content,
+                            OperateCallback<Boolean> callback) {
+        Core.ReadMsgReq req = Core.ReadMsgReq.newBuilder()
+                .setSenderId(content.senderId)
+                .setConvId(content.convId)
+                .setSeq(String.valueOf(content.seq))
+                .build();
+        xximCore.sendReadMsg(SDKTool.getUUId(), req, new RequestCallback<Core.ReadMsgResp>() {
+            @Override
+            public void onSuccess(Core.ReadMsgResp readMsgResp) {
+                callback.onSuccess(true);
+            }
+
+            @Override
+            public void onError(int code, String error) {
+                callback.onError(code, error);
+            }
+        });
+    }
+
+    // 发送编辑消息
+    public void sendEditMsg(MsgModel msgModel,
+                            OperateCallback<Boolean> callback) {
+        Map<String, AesParams> convParams = subscribeCallback.onConvParams();
+        AesParams aesParams = convParams.get(msgModel.convId);
+        ByteString content = ByteString.copyFromUtf8(msgModel.content);
+        if (msgModel.options.needDecrypt) {
+            content = ByteString.copyFrom(
+                    SDKTool.aesEncode(aesParams.key, aesParams.iv, msgModel.content)
+            );
+        }
+        Core.MsgData.Options options = Core.MsgData.Options.newBuilder()
+                .setStorageForServer(msgModel.options.storageForServer)
+                .setStorageForClient(msgModel.options.storageForClient)
+                .setNeedDecrypt(msgModel.options.needDecrypt)
+                .setOfflinePush(msgModel.options.offlinePush)
+                .setUpdateConvMsg(msgModel.options.updateConvMsg)
+                .setUpdateUnreadCount(msgModel.options.updateUnreadCount)
+                .build();
+        Core.MsgData.OfflinePush offlinePush = Core.MsgData.OfflinePush.newBuilder()
+                .setTitle(msgModel.offlinePush.title)
+                .setContent(msgModel.offlinePush.content)
+                .setPayload(msgModel.offlinePush.payload)
+                .build();
+        Core.MsgData msgData = Core.MsgData.newBuilder()
+                .setClientMsgId(msgModel.clientMsgId)
+                .setClientTime(String.valueOf(msgModel.clientTime))
+                .setServerTime(String.valueOf(msgModel.serverTime))
+                .setSenderId(msgModel.senderId)
+                .setSenderInfo(ByteString.copyFromUtf8(msgModel.senderInfo))
+                .setConvId(msgModel.convId)
+                .addAllAtUsers(msgModel.atUsers)
+                .setContentType(msgModel.contentType)
+                .setContent(content)
+                .setSeq(String.valueOf(msgModel.seq))
+                .setOptions(options)
+                .setOfflinePush(offlinePush)
+                .setExt(ByteString.copyFromUtf8(msgModel.ext))
+                .build();
+        Core.EditMsgReq req = Core.EditMsgReq.newBuilder()
+                .setSenderId(msgData.getSenderId())
+                .setServerMsgId(msgData.getServerMsgId())
+                .setContentType(msgData.getContentType())
+                .setContent(msgData.getContent())
+                .setExt(msgData.getExt())
+                .setNoticeContent(msgData.toByteString())
+                .build();
+        xximCore.sendEditMsg(SDKTool.getUUId(), req, new RequestCallback<Core.EditMsgResp>() {
+            @Override
+            public void onSuccess(Core.EditMsgResp editMsgResp) {
+                callback.onSuccess(true);
+            }
+
+            @Override
+            public void onError(int code, String error) {
                 callback.onError(code, error);
             }
         });

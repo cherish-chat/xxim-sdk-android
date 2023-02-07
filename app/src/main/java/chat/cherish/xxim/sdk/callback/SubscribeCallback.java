@@ -6,19 +6,12 @@ import java.util.Map;
 import chat.cherish.xxim.sdk.common.AesParams;
 
 interface ISubscribe {
-    List<String> onConvIdList();
-
-    Map<String, AesParams> onConvAesParams(List<String> convIdList);
+    Map<String, AesParams> onConvParams();
 }
 
 public abstract class SubscribeCallback implements ISubscribe {
     @Override
-    public List<String> onConvIdList() {
-        return null;
-    }
-
-    @Override
-    public Map<String, AesParams> onConvAesParams(List<String> convIdList) {
+    public Map<String, AesParams> onConvParams() {
         return null;
     }
 }
