@@ -350,26 +350,42 @@ public class SDKManager {
 
     // 推送通知
     public void onPushNoticeData(Core.NoticeData noticeData) {
-        NoticeModel noticeModel = handleNotice(noticeData);
-        if (noticeListener != null) {
-            boolean status = noticeListener.onReceive(noticeModel);
-            if (status) {
-                Core.AckNoticeDataReq req = Core.AckNoticeDataReq.newBuilder()
-                        .setConvId(noticeModel.convId)
-                        .setNoticeId(noticeModel.noticeId)
-                        .build();
-                xximCore.ackNoticeData(SDKTool.getUUId(), req, new RequestCallback<Core.AckNoticeDataResp>() {
-                    @Override
-                    public void onSuccess(Core.AckNoticeDataResp resp) {
-                        super.onSuccess(resp);
-                    }
-
-                    @Override
-                    public void onError(int code, String error) {
-                        super.onError(code, error);
-                    }
-                });
+        boolean status = false;
+        if (noticeData.getContentType() == NoticeContentType.read) {
+            SDKContent.ReadContent readContent = handleReadMsg(noticeData.getContent().toStringUtf8());
+            if (noticeListener != null) {
+                status = noticeListener.onReadMsg(readContent);
             }
+        } else if (noticeData.getContentType() == NoticeContentType.edit) {
+            try {
+                MsgModel msgModel = handleEditMsg(Core.MsgData.parseFrom(noticeData.getContent()));
+                if (noticeListener != null) {
+                    status = noticeListener.onEditMsg(msgModel);
+                }
+            } catch (InvalidProtocolBufferException ignored) {
+            }
+        } else {
+            NoticeModel noticeModel = handleNotice(noticeData);
+            if (noticeListener != null) {
+                status = noticeListener.onReceive(noticeModel);
+            }
+        }
+        if (status) {
+            Core.AckNoticeDataReq req = Core.AckNoticeDataReq.newBuilder()
+                    .setConvId(noticeData.getConvId())
+                    .setNoticeId(noticeData.getNoticeId())
+                    .build();
+            xximCore.ackNoticeData(SDKTool.getUUId(), req, new RequestCallback<Core.AckNoticeDataResp>() {
+                @Override
+                public void onSuccess(Core.AckNoticeDataResp resp) {
+                    super.onSuccess(resp);
+                }
+
+                @Override
+                public void onError(int code, String error) {
+                    super.onError(code, error);
+                }
+            });
         }
         if (convListener != null) convListener.onUpdate();
         calculateUnreadCount();
@@ -518,20 +534,74 @@ public class SDKManager {
         convBox().put(convModel);
     }
 
+    // 处理已读消息
+    private SDKContent.ReadContent handleReadMsg(String content) {
+        SDKContent.ReadContent readContent = SDKContent.ReadContent.fromJson(content);
+        Query<ReadModel> readQuery = readBox().query()
+                .equal(
+                        ReadModel_.senderId, readContent.senderId,
+                        QueryBuilder.StringOrder.CASE_SENSITIVE
+                )
+                .and()
+                .equal(
+                        ReadModel_.convId, readContent.convId,
+                        QueryBuilder.StringOrder.CASE_SENSITIVE
+                )
+                .build();
+        ReadModel readModel = readQuery.findFirst();
+        readQuery.close();
+        if (readModel != null) {
+            if (readContent.seq > readModel.seq) {
+                readModel.seq = readContent.seq;
+                readBox().put(readModel);
+            }
+        } else {
+            readModel = new ReadModel(
+                    readContent.senderId,
+                    readContent.convId,
+                    readContent.seq
+            );
+            readBox().put(readModel);
+        }
+        if (!TextUtils.equals(readContent.senderId, userId)) return readContent;
+        Query<MsgModel> msgQuery = msgBox().query()
+                .equal(
+                        MsgModel_.convId, readContent.convId,
+                        QueryBuilder.StringOrder.CASE_SENSITIVE
+                )
+                .orderDesc(MsgModel_.seq)
+                .build();
+        MsgModel msgModel = msgQuery.findFirst();
+        msgQuery.close();
+        if (msgModel == null) return readContent;
+        long unreadCount = msgModel.seq - readContent.seq;
+        if (unreadCount < 0) return readContent;
+        Query<ConvModel> convQuery = convBox().query()
+                .equal(
+                        ConvModel_.convId, readContent.convId,
+                        QueryBuilder.StringOrder.CASE_SENSITIVE
+                ).build();
+        ConvModel convModel = convQuery.findFirst();
+        convQuery.close();
+        if (convModel == null) return readContent;
+        if (convModel.unreadCount != unreadCount) {
+            convModel.unreadCount = unreadCount;
+            convBox().put(convModel);
+        }
+        return readContent;
+    }
+
+    // 处理编辑消息
+    private MsgModel handleEditMsg(Core.MsgData msgData) {
+        Map<String, AesParams> convParams = subscribeCallback.onConvParams();
+        return handleMsg(msgData, convParams.get(msgData.getConvId()));
+    }
+
     // 处理通知
     private NoticeModel handleNotice(Core.NoticeData noticeData) {
         NoticeModel noticeModel = NoticeModel.fromProto(noticeData);
-        if (noticeModel.contentType == NoticeContentType.read) {
-            handleReadMsg(noticeModel.content);
-        } else if (noticeModel.contentType == NoticeContentType.edit) {
-            try {
-                handleEditMsg(Core.MsgData.parseFrom(noticeData.getContent()));
-            } catch (InvalidProtocolBufferException ignored) {
-            }
-        } else {
-            updateNotice(noticeModel);
-            updateNoticeConv(noticeModel);
-        }
+        updateNotice(noticeModel);
+        updateNoticeConv(noticeModel);
         return noticeModel;
     }
 
@@ -600,41 +670,6 @@ public class SDKManager {
         convBox().put(convModel);
     }
 
-    private void handleReadMsg(String content) {
-        SDKContent.ReadContent readContent = SDKContent.ReadContent.fromJson(content);
-        Query<ReadModel> readQuery = readBox().query()
-                .equal(
-                        ReadModel_.senderId, readContent.senderId,
-                        QueryBuilder.StringOrder.CASE_SENSITIVE
-                )
-                .and()
-                .equal(
-                        ReadModel_.convId, readContent.convId,
-                        QueryBuilder.StringOrder.CASE_SENSITIVE
-                )
-                .build();
-        ReadModel readModel = readQuery.findFirst();
-        readQuery.close();
-        if (readModel != null) {
-            if (readContent.seq > readModel.seq) {
-                readModel.seq = readContent.seq;
-                readBox().put(readModel);
-            }
-        } else {
-            readModel = new ReadModel(
-                    readContent.senderId,
-                    readContent.convId,
-                    readContent.seq
-            );
-            readBox().put(readModel);
-        }
-    }
-
-    private void handleEditMsg(Core.MsgData msgData) {
-        Map<String, AesParams> convParams = subscribeCallback.onConvParams();
-        handleMsg(msgData, convParams.get(msgData.getConvId()));
-    }
-
     // 计算未读数量
     public void calculateUnreadCount() {
         Query<ConvModel> convQuery = convBox().query().build();
@@ -661,6 +696,7 @@ public class SDKManager {
                         MsgModel_.convId, convId,
                         QueryBuilder.StringOrder.CASE_SENSITIVE
                 )
+                .orderDesc(MsgModel_.seq)
                 .build();
         MsgModel model = msgQuery.findFirst();
         msgQuery.close();
