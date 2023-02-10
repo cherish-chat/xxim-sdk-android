@@ -64,7 +64,8 @@ public class XXIMSDK {
 
                     @Override
                     public void onClose(int code, String error) {
-                        disconnect();
+                        sdkManager.closeDatabase();
+                        closePullSubscribe();
                         connectListener.onClose(code, error);
                     }
                 },
