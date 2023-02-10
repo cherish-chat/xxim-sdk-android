@@ -64,6 +64,7 @@ public class XXIMSDK {
 
                     @Override
                     public void onClose(int code, String error) {
+                        disconnect();
                         connectListener.onClose(code, error);
                     }
                 },

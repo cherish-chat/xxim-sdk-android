@@ -11,6 +11,9 @@ public class SDKContent {
     public static class TypingContent {
         public boolean focus;
 
+        public TypingContent() {
+        }
+
         public TypingContent(boolean focus) {
             this.focus = focus;
         }
@@ -27,6 +30,9 @@ public class SDKContent {
     // 提示消息
     public static class TipContent {
         public String tip;
+
+        public TipContent() {
+        }
 
         public TipContent(String tip) {
             this.tip = tip;
@@ -49,6 +55,9 @@ public class SDKContent {
         public int width;
         public int height;
         public int size;
+
+        public ImageContent() {
+        }
 
         public ImageContent(String imageName, String imagePath, String imageUrl, int width, int height,
                             int size
@@ -78,6 +87,9 @@ public class SDKContent {
         public List<Integer> decibels;
         public int duration;
         public int size;
+
+        public AudioContent() {
+        }
 
         public AudioContent(String audioName, String audioPath, String audioUrl, List<Integer> decibels, int duration,
                             int size
@@ -112,6 +124,9 @@ public class SDKContent {
         public int height;
         public int size;
 
+        public VideoContent() {
+        }
+
         public VideoContent(String coverName, String coverPath, String coverUrl, String videoName, String videoPath,
                             String videoUrl, int duration, int width, int height, int size
         ) {
@@ -144,6 +159,9 @@ public class SDKContent {
         public String type;
         public int size;
 
+        public FileContent() {
+        }
+
         public FileContent(String fileName, String filePath, String fileUrl, String type, int size) {
             this.fileName = fileName;
             this.filePath = filePath;
@@ -167,6 +185,9 @@ public class SDKContent {
         public double longitude;
         public String address;
 
+        public LocationContent() {
+        }
+
         public LocationContent(double latitude, double longitude, String address) {
             this.latitude = latitude;
             this.longitude = longitude;
@@ -188,6 +209,9 @@ public class SDKContent {
         public String nickname;
         public String avatar;
 
+        public CardContent() {
+        }
+
         public CardContent(String userId, String nickname, String avatar) {
             this.userId = userId;
             this.nickname = nickname;
@@ -208,6 +232,9 @@ public class SDKContent {
         public String mergeName;
         public Map<Integer, String> mergeMap;
 
+        public MergeContent() {
+        }
+
         public MergeContent(String mergeName, Map<Integer, String> mergeMap) {
             this.mergeName = mergeName;
             this.mergeMap = mergeMap;
@@ -227,6 +254,9 @@ public class SDKContent {
         public String coverUrl;
         public String emojiUrl;
 
+        public EmojiContent() {
+        }
+
         public EmojiContent(String coverUrl, String emojiUrl) {
             this.coverUrl = coverUrl;
             this.emojiUrl = emojiUrl;
@@ -245,6 +275,9 @@ public class SDKContent {
     public static class CommandContent {
         public String command;
 
+        public CommandContent() {
+        }
+
         public CommandContent(String command) {
             this.command = command;
         }
@@ -261,6 +294,9 @@ public class SDKContent {
     // 富文本消息
     public static class RichTextContent {
         public List<Map<String, Object>> list;
+
+        public RichTextContent() {
+        }
 
         public RichTextContent(List<Map<String, Object>> list) {
             this.list = list;
@@ -280,6 +316,9 @@ public class SDKContent {
         public String title;
         public String content;
         public String actions;
+
+        public MarkdownContent() {
+        }
 
         public MarkdownContent(String title, String content, String actions) {
             this.title = title;
@@ -301,6 +340,9 @@ public class SDKContent {
         public String data;
         public String ext;
 
+        public CustomContent() {
+        }
+
         public CustomContent(String data, String ext) {
             this.data = data;
             this.ext = ext;
@@ -320,6 +362,9 @@ public class SDKContent {
         public String senderId;
         public String convId;
         public long seq;
+
+        public ReadContent() {
+        }
 
         public ReadContent(String convId, long seq) {
             this.convId = convId;
