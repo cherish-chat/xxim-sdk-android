@@ -82,10 +82,8 @@ public class SDKManager {
     private Timer timer;
     private TimerTask timerTask;
 
-
     Map<String, AesParams> convAesParams;
     boolean noticeStatus;
-
 
     // 打开数据库
     public void openDatabase(Context context, String userId, String boxName) {
