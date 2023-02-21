@@ -1,6 +1,7 @@
 package chat.cherish.xxim.sdk.manager;
 
 import android.content.Context;
+import android.os.Handler;
 import android.text.TextUtils;
 
 import com.google.protobuf.ByteString;
@@ -46,6 +47,7 @@ import io.objectbox.query.QueryBuilder;
 import pb.Core;
 
 public class SDKManager {
+    public Handler handler;
     public XXIMCore xximCore;
     public int autoPullTime;
     public int pullMsgCount;
@@ -56,11 +58,12 @@ public class SDKManager {
     public NoticeListener noticeListener;
     public UnreadListener unreadListener;
 
-    public SDKManager(XXIMCore xximCore, int autoPullTime, int pullMsgCount,
+    public SDKManager(Handler handler, XXIMCore xximCore, int autoPullTime, int pullMsgCount,
                       SubscribeCallback subscribeCallback, PullListener pullListener,
                       ConvListener convListener, MsgListener msgListener,
                       NoticeListener noticeListener, UnreadListener unreadListener
     ) {
+        this.handler = handler;
         this.xximCore = xximCore;
         this.autoPullTime = autoPullTime;
         this.pullMsgCount = pullMsgCount;
@@ -78,6 +81,11 @@ public class SDKManager {
     private boolean pullStatus = false;
     private Timer timer;
     private TimerTask timerTask;
+
+
+    Map<String, AesParams> convAesParams;
+    boolean noticeStatus;
+
 
     // 打开数据库
     public void openDatabase(Context context, String userId, String boxName) {
@@ -150,21 +158,37 @@ public class SDKManager {
 
     // 打开拉取订阅
     public void openPullSubscribe(Map<String, AesParams> convParams) {
+        convAesParams = convParams;
         pullStatus = true;
         cancelTimer();
-        if (pullListener != null) pullListener.onStart();
-        if (convParams == null) {
-            if (subscribeCallback != null) {
-                convParams = subscribeCallback.onConvParams();
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                if (pullListener != null) pullListener.onStart();
             }
+        });
+        if (convAesParams == null) {
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    if (subscribeCallback != null) {
+                        convAesParams = subscribeCallback.onConvParams();
+                    }
+                }
+            });
         }
-        if (convParams == null || convParams.isEmpty()) {
-            if (pullListener != null) pullListener.onEnd();
+        if (convAesParams == null || convAesParams.isEmpty()) {
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    if (pullListener != null) pullListener.onEnd();
+                }
+            });
             if (pullStatus) startTimer();
             return;
         }
         Core.BatchGetConvSeqReq req = Core.BatchGetConvSeqReq.newBuilder()
-                .addAllConvIdList(convParams.keySet())
+                .addAllConvIdList(convAesParams.keySet())
                 .build();
         xximCore.batchGetConvSeq(
                 SDKTool.getUUId(),
@@ -173,7 +197,12 @@ public class SDKManager {
                     @Override
                     public void onSuccess(Core.BatchGetConvSeqResp resp) {
                         if (resp.getConvSeqMapMap().isEmpty()) {
-                            if (pullListener != null) pullListener.onEnd();
+                            handler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    if (pullListener != null) pullListener.onEnd();
+                                }
+                            });
                             if (pullStatus) startTimer();
                             return;
                         }
@@ -219,13 +248,23 @@ public class SDKManager {
                             pullMsgDataList(items, new RequestCallback<Core.GetMsgListResp>() {
                                 @Override
                                 public void onSuccess(Core.GetMsgListResp resp) {
-                                    if (pullListener != null) pullListener.onEnd();
+                                    handler.post(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            if (pullListener != null) pullListener.onEnd();
+                                        }
+                                    });
                                     if (pullStatus) startTimer();
                                 }
 
                                 @Override
                                 public void onError(int code, String error) {
-                                    if (pullListener != null) pullListener.onEnd();
+                                    handler.post(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            if (pullListener != null) pullListener.onEnd();
+                                        }
+                                    });
                                     if (pullStatus) startTimer();
                                 }
                             });
@@ -234,7 +273,12 @@ public class SDKManager {
 
                     @Override
                     public void onError(int code, String error) {
-                        if (pullListener != null) pullListener.onEnd();
+                        handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (pullListener != null) pullListener.onEnd();
+                            }
+                        });
                         if (pullStatus) startTimer();
                     }
                 }
@@ -296,9 +340,16 @@ public class SDKManager {
                 new RequestCallback<Core.GetMsgListResp>() {
                     @Override
                     public void onSuccess(Core.GetMsgListResp resp) {
-                        Map<String, AesParams> convAesMap = subscribeCallback.onConvParams();
+                        handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (subscribeCallback != null) {
+                                    convAesParams = subscribeCallback.onConvParams();
+                                }
+                            }
+                        });
                         for (Core.MsgData msgData : resp.getMsgDataListList()) {
-                            handleMsg(msgData, convAesMap.get(msgData.getConvId()));
+                            handleMsg(msgData, convAesParams.get(msgData.getConvId()));
                         }
                         if (callback != null) callback.onSuccess(resp);
                     }
@@ -322,8 +373,15 @@ public class SDKManager {
             @Override
             public void onSuccess(Core.GetMsgByIdResp resp) {
                 Core.MsgData msgData = resp.getMsgData();
-                Map<String, AesParams> convAesMap = subscribeCallback.onConvParams();
-                callback.onSuccess(handleMsg(msgData, convAesMap.get(msgData.getConvId())));
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (subscribeCallback != null) {
+                            convAesParams = subscribeCallback.onConvParams();
+                        }
+                    }
+                });
+                callback.onSuccess(handleMsg(msgData, convAesParams.get(msgData.getConvId())));
             }
 
             @Override
@@ -336,41 +394,73 @@ public class SDKManager {
     // 推送消息列表
     public void onPushMsgDataList(List<Core.MsgData> msgDataList) {
         boolean isFirstPull = msgBox().count() == 0;
-        Map<String, AesParams> convAesMap = subscribeCallback.onConvParams();
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                if (subscribeCallback != null) {
+                    convAesParams = subscribeCallback.onConvParams();
+                }
+            }
+        });
         List<MsgModel> msgModelList = new ArrayList<>();
         for (Core.MsgData msgData : msgDataList) {
-            msgModelList.add(handleMsg(msgData, convAesMap.get(msgData.getConvId())));
+            msgModelList.add(handleMsg(msgData, convAesParams.get(msgData.getConvId())));
         }
         if (!isFirstPull && !msgModelList.isEmpty()) {
-            if (msgListener != null) msgListener.onReceive(msgModelList);
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    if (msgListener != null) msgListener.onReceive(msgModelList);
+                }
+            });
         }
-        if (convListener != null) convListener.onUpdate();
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                if (convListener != null) convListener.onUpdate();
+            }
+        });
         calculateUnreadCount();
     }
 
     // 推送通知
     public void onPushNoticeData(Core.NoticeData noticeData) {
-        boolean status = false;
+        noticeStatus = false;
         if (noticeData.getContentType() == NoticeContentType.read) {
             SDKContent.ReadContent readContent = handleReadMsg(noticeData.getContent().toStringUtf8());
-            if (noticeListener != null) {
-                status = noticeListener.onReadMsg(readContent);
-            }
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    if (noticeListener != null) {
+                        noticeStatus = noticeListener.onReadMsg(readContent);
+                    }
+                }
+            });
         } else if (noticeData.getContentType() == NoticeContentType.edit) {
             try {
                 MsgModel msgModel = handleEditMsg(Core.MsgData.parseFrom(noticeData.getContent()));
-                if (noticeListener != null) {
-                    status = noticeListener.onEditMsg(msgModel);
-                }
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (noticeListener != null) {
+                            noticeStatus = noticeListener.onEditMsg(msgModel);
+                        }
+                    }
+                });
             } catch (InvalidProtocolBufferException ignored) {
             }
         } else {
             NoticeModel noticeModel = handleNotice(noticeData);
-            if (noticeListener != null) {
-                status = noticeListener.onReceive(noticeModel);
-            }
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    if (noticeListener != null) {
+                        noticeStatus = noticeListener.onReceive(noticeModel);
+                    }
+                }
+            });
         }
-        if (status) {
+        if (noticeStatus) {
             Core.AckNoticeDataReq req = Core.AckNoticeDataReq.newBuilder()
                     .setConvId(noticeData.getConvId())
                     .setNoticeId(noticeData.getNoticeId())
@@ -387,7 +477,12 @@ public class SDKManager {
                 }
             });
         }
-        if (convListener != null) convListener.onUpdate();
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                if (convListener != null) convListener.onUpdate();
+            }
+        });
         calculateUnreadCount();
     }
 
@@ -593,8 +688,15 @@ public class SDKManager {
 
     // 处理编辑消息
     private MsgModel handleEditMsg(Core.MsgData msgData) {
-        Map<String, AesParams> convParams = subscribeCallback.onConvParams();
-        return handleMsg(msgData, convParams.get(msgData.getConvId()));
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                if (subscribeCallback != null) {
+                    convAesParams = subscribeCallback.onConvParams();
+                }
+            }
+        });
+        return handleMsg(msgData, convAesParams.get(msgData.getConvId()));
     }
 
     // 处理通知
@@ -675,7 +777,12 @@ public class SDKManager {
         Query<ConvModel> convQuery = convBox().query().build();
         long count = convQuery.property(ConvModel_.unreadCount).sum();
         convQuery.close();
-        if (unreadListener != null) unreadListener.onUnreadCount(count);
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                if (unreadListener != null) unreadListener.onUnreadCount(count);
+            }
+        });
     }
 
     // 创建消息
@@ -739,14 +846,21 @@ public class SDKManager {
     public void sendMsgList(String senderInfo, List<MsgModel> msgModelList, int deliverAfter,
                             OperateCallback<List<MsgModel>> callback
     ) {
-        Map<String, AesParams> convAesMap = subscribeCallback.onConvParams();
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                if (subscribeCallback != null) {
+                    convAesParams = subscribeCallback.onConvParams();
+                }
+            }
+        });
         Core.SendMsgListReq.Builder builder = Core.SendMsgListReq.newBuilder();
         for (MsgModel msgModel : msgModelList) {
             if (senderInfo != null) {
                 msgModel.senderInfo = senderInfo;
             }
             ByteString content = ByteString.copyFromUtf8(msgModel.content);
-            AesParams aesParams = convAesMap.get(msgModel.convId);
+            AesParams aesParams = convAesParams.get(msgModel.convId);
             if (msgModel.options.needDecrypt) {
                 content = ByteString.copyFrom(
                         SDKTool.aesEncode(aesParams.key, aesParams.iv, msgModel.content)
@@ -828,8 +942,15 @@ public class SDKManager {
     // 发送编辑消息
     public void sendEditMsg(MsgModel msgModel,
                             OperateCallback<Boolean> callback) {
-        Map<String, AesParams> convParams = subscribeCallback.onConvParams();
-        AesParams aesParams = convParams.get(msgModel.convId);
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                if (subscribeCallback != null) {
+                    convAesParams = subscribeCallback.onConvParams();
+                }
+            }
+        });
+        AesParams aesParams = convAesParams.get(msgModel.convId);
         ByteString content = ByteString.copyFromUtf8(msgModel.content);
         if (msgModel.options.needDecrypt) {
             content = ByteString.copyFrom(

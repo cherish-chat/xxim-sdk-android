@@ -2,11 +2,12 @@ package chat.cherish.xxim.sdk;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.TextUtils;
 
 import com.google.protobuf.ByteString;
 
-import java.util.List;
 import java.util.Map;
 
 import chat.cherish.xxim.core.XXIMCore;
@@ -32,6 +33,7 @@ import pb.Core;
 public class XXIMSDK {
 
     private Context context;
+    private Handler handler;
     private SharedPreferences preferences;
     private XXIMCore xximCore;
     private SDKManager sdkManager;
@@ -47,6 +49,7 @@ public class XXIMSDK {
                      UnreadListener unreadListener
     ) {
         this.context = context;
+        handler = new Handler(Looper.getMainLooper());
         preferences = context.getSharedPreferences("xxim", Context.MODE_PRIVATE);
         xximCore = new XXIMCore();
         xximCore.init(
@@ -54,7 +57,12 @@ public class XXIMSDK {
                 new ConnectListener() {
                     @Override
                     public void onConnecting() {
-                        connectListener.onConnecting();
+                        handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                connectListener.onConnecting();
+                            }
+                        });
                     }
 
                     @Override
@@ -66,7 +74,12 @@ public class XXIMSDK {
                     public void onClose(int code, String error) {
                         sdkManager.closeDatabase();
                         closePullSubscribe();
-                        connectListener.onClose(code, error);
+                        handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                connectListener.onClose(code, error);
+                            }
+                        });
                     }
                 },
                 new ReceivePushListener() {
@@ -82,6 +95,7 @@ public class XXIMSDK {
                 }
         );
         sdkManager = new SDKManager(
+                handler,
                 xximCore,
                 autoPullTime,
                 pullMsgCount,
@@ -119,7 +133,12 @@ public class XXIMSDK {
         setCxnParams(cxnParams, new OperateCallback<Boolean>() {
             @Override
             public void onSuccess(Boolean aBoolean) {
-                connectListener.onSuccess();
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        connectListener.onSuccess();
+                    }
+                });
             }
 
             @Override
@@ -175,13 +194,23 @@ public class XXIMSDK {
             @Override
             public void onSuccess(Core.SetUserParamsResp setUserParamsResp) {
                 openPullSubscribe(convParams);
-                callback.onSuccess(true);
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        callback.onSuccess(true);
+                    }
+                });
             }
 
             @Override
             public void onError(int code, String error) {
                 sdkManager.closeDatabase();
-                callback.onError(code, error);
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        callback.onError(code, error);
+                    }
+                });
             }
         });
     }
@@ -201,12 +230,22 @@ public class XXIMSDK {
         xximCore.customRequest(SDKTool.getUUId(), method, ByteString.copyFrom(bytes), new RequestCallback<ByteString>() {
             @Override
             public void onSuccess(ByteString byteString) {
-                callback.onSuccess(byteString.toByteArray());
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        callback.onSuccess(byteString.toByteArray());
+                    }
+                });
             }
 
             @Override
             public void onError(int code, String error) {
-                callback.onError(code, error);
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        callback.onError(code, error);
+                    }
+                });
             }
         });
     }
