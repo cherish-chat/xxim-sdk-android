@@ -175,7 +175,7 @@ public class SDKManager {
                 }
             });
         }
-        if (convAesParams == null || convAesParams.isEmpty()) {
+        if (convAesParams == null || convAesParams.isEmpty() || convAesParams.keySet().isEmpty()) {
             handler.post(new Runnable() {
                 @Override
                 public void run() {
