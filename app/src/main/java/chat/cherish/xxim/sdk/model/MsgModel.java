@@ -106,7 +106,7 @@ public class MsgModel {
                 msgData.getOfflinePush().getPayload()
         );
         String content = msgData.getContent().toStringUtf8();
-        if (options.needDecrypt) {
+        if (options.needDecrypt && aesParams != null) {
             content = SDKTool.aesDecode(
                     aesParams.key,
                     aesParams.iv,

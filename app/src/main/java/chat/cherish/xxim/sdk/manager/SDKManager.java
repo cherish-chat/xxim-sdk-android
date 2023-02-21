@@ -859,7 +859,7 @@ public class SDKManager {
             }
             ByteString content = ByteString.copyFromUtf8(msgModel.content);
             AesParams aesParams = convAesParams.get(msgModel.convId);
-            if (msgModel.options.needDecrypt) {
+            if (msgModel.options.needDecrypt && aesParams != null) {
                 content = ByteString.copyFrom(
                         SDKTool.aesEncode(aesParams.key, aesParams.iv, msgModel.content)
                 );
@@ -950,7 +950,7 @@ public class SDKManager {
         });
         AesParams aesParams = convAesParams.get(msgModel.convId);
         ByteString content = ByteString.copyFromUtf8(msgModel.content);
-        if (msgModel.options.needDecrypt) {
+        if (msgModel.options.needDecrypt && aesParams != null) {
             content = ByteString.copyFrom(
                     SDKTool.aesEncode(aesParams.key, aesParams.iv, msgModel.content)
             );
