@@ -12,12 +12,12 @@ import java.util.Map;
 
 import chat.cherish.xxim.core.XXIMCore;
 import chat.cherish.xxim.core.callback.RequestCallback;
+import chat.cherish.xxim.core.common.CxnParams;
 import chat.cherish.xxim.core.listener.ConnectListener;
 import chat.cherish.xxim.core.listener.ReceivePushListener;
 import chat.cherish.xxim.sdk.callback.OperateCallback;
 import chat.cherish.xxim.sdk.callback.SubscribeCallback;
 import chat.cherish.xxim.sdk.common.AesParams;
-import chat.cherish.xxim.sdk.common.CxnParams;
 import chat.cherish.xxim.sdk.listener.ConvListener;
 import chat.cherish.xxim.sdk.listener.MsgListener;
 import chat.cherish.xxim.sdk.listener.NoticeListener;
@@ -42,11 +42,11 @@ public class XXIMSDK {
     public MsgManager msgManager;
     public NoticeManager noticeManager;
 
-    public void init(Context context, int requestTimeout, CxnParams cxnParams, int autoPullTime, int pullMsgCount,
-                     ConnectListener connectListener, SubscribeCallback subscribeCallback,
-                     PullListener pullListener, ConvListener convListener,
-                     MsgListener msgListener, NoticeListener noticeListener,
-                     UnreadListener unreadListener
+    public void init(Context context, int requestTimeout, String rsaPublicKey, CxnParams cxnParams,
+                     int autoPullTime, int pullMsgCount, ConnectListener connectListener,
+                     SubscribeCallback subscribeCallback, PullListener pullListener,
+                     ConvListener convListener, MsgListener msgListener,
+                     NoticeListener noticeListener, UnreadListener unreadListener
     ) {
         this.context = context;
         handler = new Handler(Looper.getMainLooper());
@@ -67,7 +67,7 @@ public class XXIMSDK {
 
                     @Override
                     public void onSuccess() {
-                        setCxnParams(cxnParams, connectListener);
+                        setCxnParams(rsaPublicKey, cxnParams, connectListener);
                     }
 
                     @Override
@@ -129,8 +129,8 @@ public class XXIMSDK {
     }
 
     // 设置连接参数
-    private void setCxnParams(CxnParams cxnParams, ConnectListener connectListener) {
-        setCxnParams(cxnParams, new OperateCallback<Boolean>() {
+    private void setCxnParams(String rsaPublicKey, CxnParams cxnParams, ConnectListener connectListener) {
+        setCxnParams(rsaPublicKey, cxnParams, new OperateCallback<Boolean>() {
             @Override
             public void onSuccess(Boolean aBoolean) {
                 handler.post(new Runnable() {
@@ -143,13 +143,13 @@ public class XXIMSDK {
 
             @Override
             public void onError(int code, String error) {
-                setCxnParams(cxnParams, connectListener);
+                setCxnParams(rsaPublicKey, cxnParams, connectListener);
             }
         });
     }
 
     // 设置连接参数
-    public void setCxnParams(CxnParams cxnParams, OperateCallback<Boolean> callback) {
+    public void setCxnParams(String rsaPublicKey, CxnParams cxnParams, OperateCallback<Boolean> callback) {
         String packageId = preferences.getString("packageId", "");
         if (TextUtils.isEmpty(packageId)) {
             packageId = SDKTool.getUUId();
@@ -157,18 +157,7 @@ public class XXIMSDK {
             editor.putString("packageId", packageId);
             editor.apply();
         }
-        Core.SetCxnParamsReq req = Core.SetCxnParamsReq.newBuilder()
-                .setPackageId(packageId)
-                .setPlatform(cxnParams.platform)
-                .setDeviceId(cxnParams.deviceId)
-                .setDeviceModel(cxnParams.deviceModel)
-                .setOsVersion(cxnParams.osVersion)
-                .setAppVersion(cxnParams.appVersion)
-                .setLanguage(cxnParams.language)
-                .setNetworkUsed(cxnParams.networkUsed)
-                .setExt(ByteString.copyFromUtf8(cxnParams.ext))
-                .build();
-        xximCore.setCxnParams(SDKTool.getUUId(), req, new RequestCallback<Core.SetCxnParamsResp>() {
+        xximCore.setCxnParams(SDKTool.getUUId(), packageId, rsaPublicKey, cxnParams, new RequestCallback<Core.SetCxnParamsResp>() {
             @Override
             public void onSuccess(Core.SetCxnParamsResp setCxnParamsResp) {
                 callback.onSuccess(true);
