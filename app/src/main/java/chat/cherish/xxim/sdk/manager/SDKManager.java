@@ -514,11 +514,6 @@ public class SDKManager {
         if (!msgModel.options.storageForClient) return;
         Query<MsgModel> msgQuery = msgBox().query()
                 .equal(
-                        MsgModel_.convId, msgModel.convId,
-                        QueryBuilder.StringOrder.CASE_SENSITIVE
-                )
-                .and()
-                .equal(
                         MsgModel_.clientMsgId, msgModel.clientMsgId,
                         QueryBuilder.StringOrder.CASE_SENSITIVE
                 )
@@ -899,8 +894,19 @@ public class SDKManager {
             @Override
             public void onSuccess(Core.SendMsgListResp resp) {
                 for (MsgModel msgModel : msgModelList) {
+                    Query<MsgModel> msgQuery = msgBox().query()
+                            .equal(
+                                    MsgModel_.clientMsgId, msgModel.clientMsgId,
+                                    QueryBuilder.StringOrder.CASE_SENSITIVE
+                            )
+                            .build();
+                    MsgModel model = msgQuery.findFirst();
+                    msgQuery.close();
+                    if (model != null) {
+                        model.sendStatus = SendStatus.success;
+                        upsertMsg(model, true);
+                    }
                     msgModel.sendStatus = SendStatus.success;
-                    upsertMsg(msgModel, true);
                 }
                 callback.onSuccess(msgModelList);
             }
@@ -908,8 +914,19 @@ public class SDKManager {
             @Override
             public void onError(int code, String error) {
                 for (MsgModel msgModel : msgModelList) {
+                    Query<MsgModel> msgQuery = msgBox().query()
+                            .equal(
+                                    MsgModel_.clientMsgId, msgModel.clientMsgId,
+                                    QueryBuilder.StringOrder.CASE_SENSITIVE
+                            )
+                            .build();
+                    MsgModel model = msgQuery.findFirst();
+                    msgQuery.close();
+                    if (model != null) {
+                        model.sendStatus = SendStatus.failed;
+                        upsertMsg(model, true);
+                    }
                     msgModel.sendStatus = SendStatus.failed;
-                    upsertMsg(msgModel, true);
                 }
                 callback.onError(code, error);
             }
@@ -994,6 +1011,7 @@ public class SDKManager {
         xximCore.sendEditMsg(SDKTool.getUUId(), req, new RequestCallback<Core.EditMsgResp>() {
             @Override
             public void onSuccess(Core.EditMsgResp editMsgResp) {
+                upsertMsg(msgModel, true);
                 callback.onSuccess(true);
             }
 
