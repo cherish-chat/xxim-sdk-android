@@ -9,10 +9,10 @@ import com.google.protobuf.InvalidProtocolBufferException;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ConcurrentHashMap;
 
 import chat.cherish.xxim.core.XXIMCore;
 import chat.cherish.xxim.core.callback.RequestCallback;
@@ -82,7 +82,7 @@ public class SDKManager {
     private Timer timer;
     private TimerTask timerTask;
 
-    Map<String, AesParams> convAesParams;
+    ConcurrentHashMap<String, AesParams> convAesParams;
     boolean noticeStatus;
 
     // 打开数据库
@@ -155,7 +155,7 @@ public class SDKManager {
     }
 
     // 打开拉取订阅
-    public void openPullSubscribe(Map<String, AesParams> convParams) {
+    public void openPullSubscribe(ConcurrentHashMap<String, AesParams> convParams) {
         convAesParams = convParams;
         pullStatus = true;
         cancelTimer();

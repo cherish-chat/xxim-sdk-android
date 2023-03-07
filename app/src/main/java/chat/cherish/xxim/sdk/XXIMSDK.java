@@ -8,7 +8,7 @@ import android.text.TextUtils;
 
 import com.google.protobuf.ByteString;
 
-import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import chat.cherish.xxim.core.XXIMCore;
 import chat.cherish.xxim.core.callback.RequestCallback;
@@ -171,8 +171,8 @@ public class XXIMSDK {
     }
 
     // 设置用户参数
-    public void setUserParams(String userId, String token, String ext, String boxName, Map<String, AesParams> convParams,
-                              OperateCallback<Boolean> callback) {
+    public void setUserParams(String userId, String token, String ext, String boxName,
+                              ConcurrentHashMap<String, AesParams> convParams, OperateCallback<Boolean> callback) {
         sdkManager.openDatabase(context, userId, boxName);
         Core.SetUserParamsReq req = Core.SetUserParamsReq.newBuilder()
                 .setUserId(userId)
@@ -205,7 +205,7 @@ public class XXIMSDK {
     }
 
     // 打开拉取订阅
-    public void openPullSubscribe(Map<String, AesParams> convParams) {
+    public void openPullSubscribe(ConcurrentHashMap<String, AesParams> convParams) {
         sdkManager.openPullSubscribe(convParams);
     }
 
