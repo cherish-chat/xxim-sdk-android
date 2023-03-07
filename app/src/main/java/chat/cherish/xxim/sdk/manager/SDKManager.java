@@ -156,9 +156,11 @@ public class SDKManager {
 
     // 打开拉取订阅
     public void openPullSubscribe(ConcurrentHashMap<String, AesParams> convParams) {
-        convAesParams = convParams;
-        pullStatus = true;
-        cancelTimer();
+        synchronized (this) {
+            convAesParams = convParams;
+            pullStatus = true;
+            cancelTimer();
+        }
         handler.post(new Runnable() {
             @Override
             public void run() {
@@ -175,17 +177,7 @@ public class SDKManager {
                 }
             });
         }
-        if (convAesParams == null || convAesParams.isEmpty()) {
-            handler.post(new Runnable() {
-                @Override
-                public void run() {
-                    if (pullListener != null) pullListener.onEnd();
-                }
-            });
-            if (pullStatus) startTimer();
-            return;
-        }
-        if (convAesParams.keySet().isEmpty()) {
+        if (convAesParams == null || convAesParams.isEmpty() || convAesParams.keySet().isEmpty()) {
             handler.post(new Runnable() {
                 @Override
                 public void run() {
@@ -946,6 +938,7 @@ public class SDKManager {
     // 发送已读消息
     public void sendReadMsg(SDKContent.ReadContent content,
                             OperateCallback<Boolean> callback) {
+        content.senderId = userId;
         Core.ReadMsgReq req = Core.ReadMsgReq.newBuilder()
                 .setSenderId(content.senderId)
                 .setConvId(content.convId)
