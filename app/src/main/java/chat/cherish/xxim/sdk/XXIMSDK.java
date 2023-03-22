@@ -42,7 +42,7 @@ public class XXIMSDK {
     public MsgManager msgManager;
     public NoticeManager noticeManager;
 
-    public void init(Context context, int requestTimeout, String rsaPublicKey, CxnParams cxnParams,
+    public void init(Context context, int requestTimeout, String rsaPublicKey, String aesKey, CxnParams cxnParams,
                      int autoPullTime, int pullMsgCount, ConnectListener connectListener,
                      SubscribeCallback subscribeCallback, PullListener pullListener,
                      ConvListener convListener, MsgListener msgListener,
@@ -67,7 +67,7 @@ public class XXIMSDK {
 
                     @Override
                     public void onSuccess() {
-                        setCxnParams(rsaPublicKey, cxnParams, connectListener);
+                        setCxnParams(rsaPublicKey, aesKey, cxnParams, connectListener);
                     }
 
                     @Override
@@ -129,8 +129,8 @@ public class XXIMSDK {
     }
 
     // 设置连接参数
-    private void setCxnParams(String rsaPublicKey, CxnParams cxnParams, ConnectListener connectListener) {
-        setCxnParams(rsaPublicKey, cxnParams, new OperateCallback<Boolean>() {
+    private void setCxnParams(String rsaPublicKey, String aesKey, CxnParams cxnParams, ConnectListener connectListener) {
+        setCxnParams(rsaPublicKey, aesKey, cxnParams, new OperateCallback<Boolean>() {
             @Override
             public void onSuccess(Boolean aBoolean) {
                 handler.post(new Runnable() {
@@ -143,13 +143,13 @@ public class XXIMSDK {
 
             @Override
             public void onError(int code, String error) {
-                setCxnParams(rsaPublicKey, cxnParams, connectListener);
+                setCxnParams(rsaPublicKey, aesKey, cxnParams, connectListener);
             }
         });
     }
 
     // 设置连接参数
-    public void setCxnParams(String rsaPublicKey, CxnParams cxnParams, OperateCallback<Boolean> callback) {
+    public void setCxnParams(String rsaPublicKey, String aesKey, CxnParams cxnParams, OperateCallback<Boolean> callback) {
         String packageId = preferences.getString("packageId", "");
         if (TextUtils.isEmpty(packageId)) {
             packageId = SDKTool.getUUId();
@@ -157,7 +157,7 @@ public class XXIMSDK {
             editor.putString("packageId", packageId);
             editor.apply();
         }
-        xximCore.setCxnParams(SDKTool.getUUId(), packageId, rsaPublicKey, cxnParams, new RequestCallback<Core.SetCxnParamsResp>() {
+        xximCore.setCxnParams(SDKTool.getUUId(), packageId, rsaPublicKey, aesKey, cxnParams, new RequestCallback<Core.SetCxnParamsResp>() {
             @Override
             public void onSuccess(Core.SetCxnParamsResp setCxnParamsResp) {
                 callback.onSuccess(true);
