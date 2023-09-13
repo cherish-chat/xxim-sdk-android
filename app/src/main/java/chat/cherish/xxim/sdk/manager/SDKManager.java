@@ -950,6 +950,7 @@ public class SDKManager {
                 .setSenderId(content.senderId)
                 .setConvId(content.convId)
                 .setSeq(String.valueOf(content.seq))
+                .setNoticeContent(ByteString.copyFromUtf8(content.toJson()))
                 .build();
         xximCore.sendReadMsg(SDKTool.getUUId(), req, new RequestCallback<Core.ReadMsgResp>() {
             @Override
